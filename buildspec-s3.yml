@@ -1,0 +1,19 @@
+version: 0.2
+phases:  
+  pre_build:
+    commands:
+      - ls
+      - n v22
+      - npm i
+  build:
+    commands:
+      #- export REACT_APP_ENV=$ENV yarn build
+      #- REACT_APP_ENV=$ENV yarn build
+      - npm run build
+  post_build:
+    commands:
+      - ls
+      - aws s3 sync out/ s3://$S3_BUCKET
+      - aws cloudfront create-invalidation --distribution-id=$PROD_CLOUDFRONT_DIST --paths '/*'
+      - aws cloudfront create-invalidation --distribution-id=$PROD_CLOUDFRONT_DIST_1 --paths '/*'
+      #- ls
