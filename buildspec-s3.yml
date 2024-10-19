@@ -9,6 +9,13 @@ phases:
     commands:
       #- export REACT_APP_ENV=$ENV yarn build
       #- REACT_APP_ENV=$ENV yarn build
+      - export NEXT_PUBLIC_FIREBASE_API_KEY= AIzaSyBG9vd3h_asovb7nglySb8P8i7fpttmI8c
+      - export NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN= free-21-1gluyh.firebaseapp.com
+      - export NEXT_PUBLIC_FIREBASE_PROJECT_ID= free-21-1gluyh
+      - export NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET= free-21-1gluyh.appspot.com
+      - export NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID= 371125082457
+      - export NEXT_PUBLIC_FIREBASE_APP_ID= 1:371125082457:web:166f90b30dca4dc96ed448
+      - export NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID= G-532Y7NMFFV
       - npm run build
   post_build:
     commands:
