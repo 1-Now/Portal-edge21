@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db, storage } from "@/app/firebase/firebaseConfig";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where, Timestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { MdLinkedCamera } from "react-icons/md";
 import Image from "next/image";
@@ -24,7 +24,6 @@ const PostForm = ({ postCategory, formTitle }) => {
         SourceImage: "",
         postPhoto: ""
     });
-    console.log(formData, "formData")
     const [sourceImageFile, setSourceImageFile] = useState('');
     const [postPhotoFile, setPostPhotoFile] = useState('');
     const [loading, setLoading] = useState(false);
@@ -63,6 +62,16 @@ const PostForm = ({ postCategory, formTitle }) => {
         setLoading(true);
 
         try {
+            const postsCollection = collection(db, "userPosts");
+            const contentIDQuery = query(postsCollection, where("ContentID", "==", formData.ContentID));
+            const contentIDSnapshot = await getDocs(contentIDQuery);
+
+            if (!contentIDSnapshot.empty) {
+                alert("ContentID already exists. Please use a unique ContentID.");
+                setLoading(false);
+                return; // Stop the submission if ContentID is not unique
+            }
+
             let sourceImageUrl = null;
             let postPhotoUrl = null;
 
@@ -91,14 +100,12 @@ const PostForm = ({ postCategory, formTitle }) => {
                 SourceDescription: formData.SourceDescription,
                 ContentID: formData.ContentID,
                 timePublished: formData.timePublished ? Timestamp.fromDate(new Date(formData.timePublished)) : null,
-                SourceImage: sourceImageUrl || null,  
-                postPhoto: postPhotoUrl || null,      
-                postOwner: user.uid,
+                SourceImage: sourceImageUrl || null,
+                postPhoto: postPhotoUrl || null,
+                postOwner: true,
                 postCategory: formData.postCategory,
             };
 
-            // Add the post to Firestore
-            const postsCollection = collection(db, "userPosts");
             await addDoc(postsCollection, postData);
 
             alert(`${postCategory} added successfully!`);
@@ -156,7 +163,7 @@ const PostForm = ({ postCategory, formTitle }) => {
                     placeholder={`${postCategory} Heading`}
                     value={formData.postTitle}
                     onChange={handleInputChange}
-         required
+                    required
                     className="w-full p-3 rounded bg-transparent text-white focus:placeholder-white placeholder-white border-2 border-[#31363f] focus:border-yellow-500 focus:outline-none"
                 />
 
@@ -205,22 +212,22 @@ const PostForm = ({ postCategory, formTitle }) => {
 
                 <div className="w-full h-28 rounded border-2 border-[#31363f] relative mt-4 p-4">
                     <div className="w-[100%] mob-w-[100%] h-full bg-transparent rounded flex justify-center items-center">
-                    {!sourceImageFile && (
-                        <label
-                            htmlFor="sourceImage"
-                            className="flex flex-col items-center cursor-pointer text-gray-500 w-full"
-                        >
-                            <MdLinkedCamera size={40} className="text-white"/>
-                            <span className="mt-2 text-white text-xs">Add Source Image</span>
-                            <input
-                                type="file"
-                                id="sourceImage"
-                                name="sourceImage"
-                                accept="image/*"
-                                onChange={(e) => handleImageChange(e, setSourceImageFile)}
-                                className="hidden"
-                            />
-                        </label>
+                        {!sourceImageFile && (
+                            <label
+                                htmlFor="sourceImage"
+                                className="flex flex-col items-center cursor-pointer text-gray-500 w-full"
+                            >
+                                <MdLinkedCamera size={40} className="text-white" />
+                                <span className="mt-2 text-white text-xs">Add Source Image</span>
+                                <input
+                                    type="file"
+                                    id="sourceImage"
+                                    name="sourceImage"
+                                    accept="image/*"
+                                    onChange={(e) => handleImageChange(e, setSourceImageFile)}
+                                    className="hidden"
+                                />
+                            </label>
                         )}
                         {sourceImageFile && (
                             <div className="ml-3">
@@ -250,8 +257,8 @@ const PostForm = ({ postCategory, formTitle }) => {
                                 htmlFor="postPhoto"
                                 className="flex flex-col items-center cursor-pointer text-gray-500 w-full"
                             >
-                                 <MdLinkedCamera size={60} className="text-white"/>
-                                 <span className="mt-2 text-white text-xs">Add Feature Image</span>
+                                <MdLinkedCamera size={60} className="text-white" />
+                                <span className="mt-2 text-white text-xs">Add Feature Image</span>
                                 <input
                                     type="file"
                                     id="postPhoto"

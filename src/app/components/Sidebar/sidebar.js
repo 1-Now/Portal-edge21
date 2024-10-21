@@ -86,6 +86,10 @@ const Sidebar = () => {
             <FaChartArea size={20} />
             <span>Add Charts</span>
           </Link>
+          <Link href="/bitcoin-price" className="hover:text-yellow-400 flex items-center space-x-2">
+            <MdArticle size={20} />
+            <span>Bitcoin Price</span>
+          </Link>
           </div>
         </nav>
 

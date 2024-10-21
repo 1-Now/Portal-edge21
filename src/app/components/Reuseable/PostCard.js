@@ -41,7 +41,7 @@ const PostCard = ({ category, image, ShareLink, title, description, likes, comme
                             className="w-full h-[200px] object-cover rounded-lg mb-4"
                         />
                     )}
-                    <a href={ShareLink} target="_self" rel="noopener noreferrer" className="bg-[#f28e13] flex cursor-pointer absolute top-2 right-2 text-white text-xs px-3 py-2 rounded">
+                    <a href={ShareLink} target="_self" rel="noopener noreferrer" className="bg-[#f28e13] flex cursor-pointer absolute top-2 right-2 text-white text-xs px-3 py-2 rounded border-2">
                         {getCategoryIcon()}
                         {getCategoryText()}
                     </a>

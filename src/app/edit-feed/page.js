@@ -115,6 +115,15 @@ const Editfeed = () => {
         );
       }
 
+      filteredPosts.sort((a, b) => {
+        const internalScoreA = a['InternalScore'] || 0;
+        const internalScoreB = b['InternalScore'] || 0;
+        if (internalScoreA === internalScoreB) {
+          return b.timePublished.seconds - a.timePublished.seconds;
+        }
+        return internalScoreB - internalScoreA;
+      });
+      
       // For pagination: Append new posts to the existing ones
       if (usePagination) {
         setLatestPosts((prevPosts) => [...prevPosts, ...filteredPosts]);
@@ -159,7 +168,7 @@ const Editfeed = () => {
       }
 
       alert("Post deleted successfully!");
-      fetchPosts(); // Refresh posts after deletion
+      fetchPosts();
     } catch (error) {
       console.error("Error deleting post:", error);
       alert("Failed to delete the post.");
@@ -168,7 +177,7 @@ const Editfeed = () => {
   };
 
   const uploadImageIfNeeded = async (file, userId, fieldName) => {
-    if (!file) return null;
+    if (!file || !userId) return null;
     const fileRef = ref(storage, `users/${userId}/${file.name}`);
     await uploadBytes(fileRef, file);
     const downloadURL = await getDownloadURL(fileRef);
@@ -181,11 +190,17 @@ const Editfeed = () => {
       let sourceImageUrl = updatedData.SourceImage;
       let postPhotoUrl = updatedData.postPhoto;
 
+      // if (updatedData.SourceImage instanceof File) {
+      //   sourceImageUrl = await uploadImageIfNeeded(updatedData.SourceImage, updatedData.postOwner, "SourceImage");
+      // }
+      // if (updatedData.postPhoto instanceof File) {
+      //   postPhotoUrl = await uploadImageIfNeeded(updatedData.postPhoto, updatedData.postOwner, "postPhoto");
+      // }
       if (updatedData.SourceImage instanceof File) {
-        sourceImageUrl = await uploadImageIfNeeded(updatedData.SourceImage, updatedData.postOwner, "SourceImage");
+        sourceImageUrl = await uploadImageIfNeeded(updatedData.SourceImage, user.uid);
       }
       if (updatedData.postPhoto instanceof File) {
-        postPhotoUrl = await uploadImageIfNeeded(updatedData.postPhoto, updatedData.postOwner, "postPhoto");
+        postPhotoUrl = await uploadImageIfNeeded(updatedData.postPhoto, user.uid);
       }
 
       const updatedPostData = { ...updatedData, SourceImage: sourceImageUrl, postPhoto: postPhotoUrl };
@@ -255,6 +270,7 @@ const Editfeed = () => {
                 title={post.postTitle}
                 description={post.postDescription}
                 category={post.postCategory}
+                likes={post?.InternalScore}
                 createdAt={formatDistanceToNowStrict(post.timePublished?.toDate())}
               />
               <div className="flex justify-between mt-2">
