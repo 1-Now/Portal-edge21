@@ -31,10 +31,6 @@ const AllPosts = () => {
     });
   }, []);
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
   const fetchPosts = async (pageNumber = 1) => {
     setLoading(true);
 
@@ -73,6 +69,15 @@ const AllPosts = () => {
         ...doc.data(),
       }));
 
+      postsList.sort((a, b) => {
+        const ratingA = a['rating'] || 0;
+        const ratingB = b['rating'] || 0;
+        if (ratingA === ratingB) {
+          return b.timePublished.seconds - a.timePublished.seconds;
+        }
+        return ratingB - ratingA;
+      });
+
       if (postsList.length < POSTS_PER_PAGE) {
         setHasMorePosts(false);
       } else {
@@ -101,10 +106,6 @@ const AllPosts = () => {
     const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
     setTotalPages(totalPages);
   };
-
-  useEffect(() => {
-    fetchTotalPages()
-  }, []);
 
   const handlePageClick = (pageNumber) => {
     setPage(pageNumber);
@@ -166,7 +167,7 @@ const AllPosts = () => {
                   image={post.postPhoto || imageplaceholder}
                   title={post.SourceName}
                   description={post.postDescription}
-                  likes={post.likes}
+                  likes={post.rating}
                   comments={post.comments}
                   ShareLink={post?.sourceLink}
                   category={post?.postCategory}

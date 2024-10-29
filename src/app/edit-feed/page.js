@@ -116,14 +116,14 @@ const Editfeed = () => {
       }
 
       filteredPosts.sort((a, b) => {
-        const internalScoreA = a['InternalScore'] || 0;
-        const internalScoreB = b['InternalScore'] || 0;
-        if (internalScoreA === internalScoreB) {
+        const ratingA = a['rating'] || 0;
+        const ratingB = b['rating'] || 0;
+        if (ratingA === ratingB) {
           return b.timePublished.seconds - a.timePublished.seconds;
         }
-        return internalScoreB - internalScoreA;
+        return ratingB - ratingA;
       });
-      
+
       // For pagination: Append new posts to the existing ones
       if (usePagination) {
         setLatestPosts((prevPosts) => [...prevPosts, ...filteredPosts]);
@@ -270,7 +270,7 @@ const Editfeed = () => {
                 title={post.postTitle}
                 description={post.postDescription}
                 category={post.postCategory}
-                likes={post?.InternalScore}
+                likes={post?.rating}
                 createdAt={formatDistanceToNowStrict(post.timePublished?.toDate())}
               />
               <div className="flex justify-between mt-2">

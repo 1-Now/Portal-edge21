@@ -110,22 +110,6 @@ const PostForm = ({ postCategory, formTitle }) => {
 
             alert(`${postCategory} added successfully!`);
             window.location.reload()
-            // Reset form after successful submission
-            setFormData({
-                postTitle: "",
-                postDescription: "",
-                rating: "",
-                InternalScore: "",
-                sourceLink: "",
-                SourceName: "",
-                SourceDescription: "",
-                ContentID: "",
-                timePublished: "",
-                SourceImage: "",
-                postPhoto: ""
-            });
-            setSourceImageFile(null);
-            setPostPhotoFile(null);
         } catch (error) {
             console.error("Error adding post: ", error);
             alert("Error adding post. Please try again.");
@@ -181,7 +165,7 @@ const PostForm = ({ postCategory, formTitle }) => {
                         e.target.style.height = `${e.target.scrollHeight}px`;
                     }}
                 />
-                <div className="grid md:grid-cols-3 xs:grid-cols-1 gap-4">
+                <div className="grid md:grid-cols-2 xs:grid-cols-1 gap-4">
                     <input
                         type="text"
                         name="SourceName"
@@ -190,6 +174,17 @@ const PostForm = ({ postCategory, formTitle }) => {
                         onChange={handleInputChange}
                         className="w-full p-3 rounded bg-transparent text-white focus:placeholder-white placeholder-white border-2 border-[#31363f] focus:border-yellow-500 focus:outline-none"
                     />
+                    <input
+                        type="number"
+                        name="rating"
+                        placeholder="Likes"
+                        value={formData?.rating}
+                        onChange={handleInputChange}
+                        className="w-full p-3 rounded bg-transparent text-white focus:placeholder-white placeholder-white border-2 border-[#31363f] focus:border-yellow-500 focus:outline-none"
+                        required
+                    />
+                </div>
+                <div className="grid md:grid-cols-2 xs:grid-cols-1 gap-4">
                     <input
                         type="number"
                         name="InternalScore"
