@@ -29,13 +29,17 @@ const PostForm = ({ postCategory, formTitle }) => {
     const [loading, setLoading] = useState(false);
 
     // Check if user is authenticated
+    const [authLoading, setAuthLoading] = useState(true);
+
     useEffect(() => {
         onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
             } else {
                 alert("You need to be logged in to upload posts.");
+                router.push("/login");
             }
+            setAuthLoading(false);
         });
     }, [auth]);
 
