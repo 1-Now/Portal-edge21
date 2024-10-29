@@ -121,6 +121,7 @@ const PostForm = ({ postCategory, formTitle }) => {
             setLoading(false);
         }
     };
+    if (authLoading) return <div className="text-white">Authenticating...</div>;
 
     return (
         <div className="min-h-screen bg-gray-900 p-5">
