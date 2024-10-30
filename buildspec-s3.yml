@@ -3,7 +3,7 @@ phases:
   pre_build:
     commands:
       - ls
-      - n v22
+      - n v22.10.0
       - npm i
   build:
     commands:
