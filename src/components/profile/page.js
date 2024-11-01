@@ -10,10 +10,15 @@ const Profile = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+      if (!currentUser) {
+        navigate('/login');
+      } else {
+        setUser(currentUser);
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
+
 
   const handleLogout = async () => {
     await signOut(auth);
