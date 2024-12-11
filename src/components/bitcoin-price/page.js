@@ -1,33 +1,49 @@
-
-
 import React, { useEffect, useState } from "react";
-import { db } from "../../firebase/firebaseConfig";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
 import Loader from './../Reuseable/Loader';
+import axios from "axios";
+import { FaPlus, FaMinus } from "react-icons/fa";
 
 const BitcoinPrice = () => {
   const [data, setData] = useState({
-    Heading1: "",
-    Para1: "",
-    Heading2: "",
-    Para2: "",
+    heading1: "",
+    para1: "",
+    heading2: "",
+    para2: "",
+    heading3: "",
+    para3: "",
+    metatitle: "",
+    metadescription: "",
+    tags: "",
   });
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showOptionalFields, setShowOptionalFields] = useState(false);
+
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const docRef = doc(db, "detailsAdd", "1");
-        const docSnap = await getDoc(docRef);
+      setLoading(true);
+      const currentDate = getCurrentDate();
 
-        if (docSnap.exists()) {
-          setData(docSnap.data());
-        } else {
-          console.log("No such document!");
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/data/fetchDataByDate/${currentDate}`
+        );
+
+        if (response.data && response.data.length > 0) {
+          setData(response.data[0]);
         }
+      setLoading(false);
       } catch (error) {
-        console.error("Error fetching document:", error);
+        console.error("Error fetching data:", error);
+        setLoading(false);
       } finally {
         setLoading(false);
       }
@@ -46,20 +62,36 @@ const BitcoinPrice = () => {
     setIsSubmitting(true);
 
     try {
-      const docRef = doc(db, "detailsAdd", "1");
-      await updateDoc(docRef, {
-        Heading1: data.Heading1,
-        Para1: data.Para1,
-        Heading2: data.Heading2,
-        Para2: data.Para2,
-      });
-      alert("Article updated successfully!");
+      const response = await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/data/update-Para-Details/${data._id}`,
+        {
+          heading1: data.heading1,
+          para1: data.para1,
+          heading2: data.heading2,
+          para2: data.para2,
+          heading3: data.heading3,
+          para3: data.para3,
+          metatitle: data.metatitle,
+          metadescription: data.metadescription,
+          tags: data.tags,
+        }
+      );
+
+      if (response.status === 200) {
+        alert("Article updated successfully!");
+      } else {
+        alert("Failed to update the article.");
+      }
     } catch (error) {
-      console.error("Error updating document:", error);
+      console.error("Error updating data:", error);
       alert("Error updating article. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const toggleOptionalFields = () => {
+    setShowOptionalFields(!showOptionalFields);
   };
 
   if (loading) {
@@ -72,24 +104,24 @@ const BitcoinPrice = () => {
         <h1 className="text-white text-3xl font-bold mb-6">Bitcoin Insights</h1>
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-white mb-1" htmlFor="Heading1">
+            <label className="block text-white mb-1" htmlFor="heading1">
               Article Heading 1
             </label>
             <input
               type="text"
-              id="Heading1"
-              value={data.Heading1}
+              id="heading1"
+              value={data?.heading1}
               onChange={handleInputChange}
               className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-white mb-1" htmlFor="Para1">
+            <label className="block text-white mb-1" htmlFor="para1">
               Article Summary 1
             </label>
             <textarea
-              id="Para1"
-              value={data.Para1}
+              id="para1"
+              value={data?.para1}
               onChange={handleInputChange}
               className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
               rows="4"
@@ -98,29 +130,112 @@ const BitcoinPrice = () => {
 
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-white mb-1" htmlFor="Heading2">
+              <label className="block text-white mb-1" htmlFor="heading2">
                 Article Heading 2
               </label>
               <input
                 type="text"
-                id="Heading2"
-                value={data.Heading2}
+                id="heading2"
+                value={data.heading2}
                 onChange={handleInputChange}
                 className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-white mb-1" htmlFor="Para2">
+              <label className="block text-white mb-1" htmlFor="para2">
                 Article Summary 2
               </label>
               <textarea
-                id="Para2"
-                value={data.Para2}
+                id="para2"
+                value={data?.para2}
                 onChange={handleInputChange}
                 className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
                 rows="4"
               />
             </div>
+          </div>
+
+          {showOptionalFields && (
+            <>
+              <div>
+                <label className="block text-white mb-1" htmlFor="heading3">
+                  Article Heading 3
+                </label>
+                <input
+                  type="text"
+                  id="heading3"
+                  value={data.heading3}
+                  onChange={handleInputChange}
+                  className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-white mb-1" htmlFor="para3">
+                  Article Paragraph 3
+                </label>
+                <textarea
+                  id="para3"
+                  value={data.para3}
+                  onChange={handleInputChange}
+                  className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
+                  rows="4"
+                />
+              </div>
+            </>
+          )}
+
+          <div className="flex items-center justify-center text-white
+          w-full p-3 rounded bg-transparent border border-white focus:outline-none
+          "
+            onClick={toggleOptionalFields}
+          >
+            {showOptionalFields ? (
+              <>
+                <FaMinus className="mr-2" /> Hide Optional Fields
+              </>
+            ) : (
+              <>
+                <FaPlus className="mr-2" /> Show Optional Fields
+              </>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-white mb-1" htmlFor="metatitle">
+              Meta Title
+            </label>
+            <input
+              type="text"
+              id="metatitle"
+              value={data.metatitle}
+              onChange={handleInputChange}
+              className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-white mb-1" htmlFor="metadescription">
+              Meta Description
+            </label>
+            <textarea
+              id="metadescription"
+              value={data.metadescription}
+              onChange={handleInputChange}
+              className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
+              rows="4"
+            />
+          </div>
+
+          <div>
+            <label className="block text-white mb-1" htmlFor="tags">
+              Tags
+            </label>
+            <input
+              type="text"
+              id="tags"
+              value={data.tags}
+              onChange={handleInputChange}
+              className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
+            />
           </div>
 
           <div className="w-full flex justify-center">

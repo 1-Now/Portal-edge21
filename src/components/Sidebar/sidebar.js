@@ -51,7 +51,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex flex-col space-y-4">
+        <nav className="flex flex-col space-y-4 overflow-y-scroll h-[80vh]">
           <h4 className="text-xs">Platform Navigation</h4>
           <div className="ps-2">
           <Link to="/all-posts" className="hover:text-yellow-400 flex items-center space-x-2">
@@ -88,6 +88,10 @@ const Sidebar = () => {
           <Link to="/bitcoin-price" className="hover:text-yellow-400 flex items-center space-x-2">
             <MdArticle size={20} />
             <span>Bitcoin Price</span>
+          </Link>
+          <Link to="/bitcoin-history" className="hover:text-yellow-400 flex items-center space-x-2 py-4">
+            <MdArticle size={20} />
+            <span>Bitcoin History</span>
           </Link>
           </div>
         </nav>
