@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchAllBTCPara } from "../apis/getAllBTCPara";
 import { updateBTCPara, deleteBTCPara } from "../apis/updateDeleteBTCPara";
-
 const BitcoinHistory = () => {
   const [btcData, setBtcData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +21,7 @@ const BitcoinHistory = () => {
 
     fetchData();
   }, []);
-
+  
   // Handle edit button click
   const handleEdit = (item) => {
     setEditData(item); // Open the edit form for the selected item
@@ -47,6 +46,8 @@ const BitcoinHistory = () => {
       setBtcData(
         btcData.map((item) => (item._id === updatedItem._id ? updatedItem : item))
       );
+      const updatedData = await fetchAllBTCPara();
+      setBtcData(updatedData);
       setEditData(null); // Close the edit form
     } catch (error) {
       console.error("Error updating item:", error);

@@ -57,34 +57,90 @@ const BitcoinPrice = () => {
     setData((prevData) => ({ ...prevData, [id]: value }));
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setIsSubmitting(true);
+
+  //   try {
+  //     const response = await axios.put(
+  //       `${process.env.REACT_APP_BACKEND_URL}/api/data/update-Para-Details/${data._id}`,
+  //       {
+  //         heading1: data.heading1,
+  //         para1: data.para1,
+  //         heading2: data.heading2,
+  //         para2: data.para2,
+  //         heading3: data.heading3,
+  //         para3: data.para3,
+  //         metatitle: data.metatitle,
+  //         metadescription: data.metadescription,
+  //         tags: data.tags,
+  //       }
+  //     );
+
+  //     if (response.status === 200) {
+  //       alert("Article updated successfully!");
+  //     } else {
+  //       alert("Failed to update the article.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error updating data:", error);
+  //     alert("Error updating article. Please try again.");
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/api/data/update-Para-Details/${data._id}`,
-        {
-          heading1: data.heading1,
-          para1: data.para1,
-          heading2: data.heading2,
-          para2: data.para2,
-          heading3: data.heading3,
-          para3: data.para3,
-          metatitle: data.metatitle,
-          metadescription: data.metadescription,
-          tags: data.tags,
-        }
-      );
+      if (data._id) {
+        const response = await axios.put(
+          `${process.env.REACT_APP_BACKEND_URL}/api/data/update-Para-Details/${data._id}`,
+          {
+            heading1: data.heading1,
+            para1: data.para1,
+            heading2: data.heading2,
+            para2: data.para2,
+            heading3: data.heading3,
+            para3: data.para3,
+            metatitle: data.metatitle,
+            metadescription: data.metadescription,
+            tags: data.tags,
+          }
+        );
 
-      if (response.status === 200) {
-        alert("Article updated successfully!");
+        if (response.status === 200) {
+          alert("Article updated successfully!");
+        } else {
+          alert("Failed to update the article.");
+        }
       } else {
-        alert("Failed to update the article.");
+        const response = await axios.post(
+          `${process.env.REACT_APP_BACKEND_URL}/api/data/storeParaDetails`,
+          {
+            heading1: data.heading1,
+            para1: data.para1,
+            heading2: data.heading2,
+            para2: data.para2,
+            heading3: data.heading3,
+            para3: data.para3,
+            metatitle: data.metatitle,
+            metadescription: data.metadescription,
+            tags: data.tags,
+          }
+        );
+
+        if (response.status === 200) {
+          alert("Article created successfully!");
+        } else {
+          alert("Failed to create the article.");
+        }
       }
     } catch (error) {
-      console.error("Error updating data:", error);
-      alert("Error updating article. Please try again.");
+      console.error("Error submitting data:", error);
+      alert("Error submitting article. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
