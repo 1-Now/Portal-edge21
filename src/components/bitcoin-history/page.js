@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { fetchAllBTCPara } from "../apis/getAllBTCPara";
 import { updateBTCPara, deleteBTCPara } from "../apis/updateDeleteBTCPara";
+import ModalComponent from "../Reuseable/Model";
 const BitcoinHistory = () => {
   const [btcData, setBtcData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editData, setEditData] = useState(null); // To store the item being edited
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -21,10 +23,11 @@ const BitcoinHistory = () => {
 
     fetchData();
   }, []);
-  
+
   // Handle edit button click
   const handleEdit = (item) => {
-    setEditData(item); // Open the edit form for the selected item
+    setEditData(item);
+    setIsModalOpen(true);
   };
 
   // Handle delete button click
@@ -49,9 +52,14 @@ const BitcoinHistory = () => {
       const updatedData = await fetchAllBTCPara();
       setBtcData(updatedData);
       setEditData(null); // Close the edit form
+      setIsModalOpen(false);
     } catch (error) {
       console.error("Error updating item:", error);
     }
+  };
+  const handleCancel = () => {
+    setEditData(null);
+    setIsModalOpen(false);
   };
 
   // Handle form input changes
@@ -68,68 +76,76 @@ const BitcoinHistory = () => {
   return (
     <div className="my-[70px] m-auto w-full sm:w-full gap-4 md:max-w-[700px] lg:max-w-[700px] text-white mob-px-10">
       {/* Edit Form */}
-      {editData && (
-        <div className="mb-[45px]">
-          <h1 className="mb-3 font-bold text-xl">Edit Item</h1>
-          <input
-            type="text"
-            name="heading1"
-            value={editData.heading1 || ""}
-            onChange={handleChange}
-            placeholder="Heading 1"
-            className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
-          />
-          <textarea
-            name="para1"
-            value={editData.para1 || ""}
-            onChange={handleChange}
-            placeholder="Paragraph 1"
-            className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
-          />
-          <input
-            type="text"
-            name="heading2"
-            value={editData.heading2 || ""}
-            onChange={handleChange}
-            placeholder="Heading 2"
-            className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
-          />
-          <textarea
-            name="para2"
-            value={editData.para2 || ""}
-            onChange={handleChange}
-            placeholder="Paragraph 2"
-            className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
-          />
-          <input
-            type="text"
-            name="heading3"
-            value={editData.heading3 || ""}
-            onChange={handleChange}
-            placeholder="Heading 3"
-            className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
-          />
-          <textarea
-            name="para3"
-            value={editData.para3 || ""}
-            onChange={handleChange}
-            placeholder="Paragraph 3"
-            className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
-          />
-          <button
-            onClick={handleSave}
-            className="bg-green-500 px-4 py-2 text-white rounded"
-          >
-            Save
-          </button>
-          <button
-            onClick={() => setEditData(null)}
-            className="bg-red-500 px-4 py-2 text-white rounded ml-2"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
+      <ModalComponent
+        isOpen={isModalOpen}
+        onClose={handleCancel}
+        title="Edit Item"
+      >
+        {editData && (
+          <div>
+            {/* Edit Form */}
+            <input
+              type="text"
+              name="heading1"
+              value={editData.heading1 || ""}
+              onChange={handleChange}
+              placeholder="Heading 1"
+              className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
+            />
+            <textarea
+              name="para1"
+              value={editData.para1 || ""}
+              onChange={handleChange}
+              placeholder="Paragraph 1"
+              className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
+            />
+            <input
+              type="text"
+              name="heading2"
+              value={editData.heading2 || ""}
+              onChange={handleChange}
+              placeholder="Heading 2"
+              className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
+            />
+            <textarea
+              name="para2"
+              value={editData.para2 || ""}
+              onChange={handleChange}
+              placeholder="Paragraph 2"
+              className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
+            />
+            <input
+              type="text"
+              name="heading3"
+              value={editData.heading3 || ""}
+              onChange={handleChange}
+              placeholder="Heading 3"
+              className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
+            />
+            <textarea
+              name="para3"
+              value={editData.para3 || ""}
+              onChange={handleChange}
+              placeholder="Paragraph 3"
+              className="p-2 mb-2 rounded bg-gray-700 text-white border border-gray-500 w-full"
+            />
+            <div className="flex justify-end space-x-4 mt-4">
+              <button
+                onClick={handleSave}
+                className="bg-green-500 px-4 py-2 text-white rounded"
+              >
+                Save
+              </button>
+              <button
+                onClick={handleCancel}
+                className="bg-red-500 px-4 py-2 text-white rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </ModalComponent>
 
       {btcData.length > 0 ? (
         btcData.map((item) => (
