@@ -15,6 +15,7 @@ import DashboardLayout from './DashboardLayout';
 import ProtectedRoute from './ProtectedRoute';
 import BitcoinPrice from './components/bitcoin-price/page';
 import BitcoinHistory from './components/bitcoin-history/page';
+import AddNoster from './components/add-noster/page';
 
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
             <Route path="add-video" element={<AddVideo />} />
             <Route path="add-tweet" element={<AddTweet />} />
             <Route path="add-charts" element={<AddCharts />} />
+            <Route path="add-noster" element={<AddNoster />} />
             <Route path="bitcoin-price" element={<BitcoinPrice />} />
             <Route path="bitcoin-history" element={<BitcoinHistory />} />
             <Route path="profile" element={<Profile />} />
