@@ -130,6 +130,7 @@ const EditPostForm = ({ postData, onClose, onSubmit }) => {
               <option value="Tweet">Tweet</option>
               <option value="Video">Video</option>
               <option value="Charts">Charts</option>
+              <option value="Nostr">Nostr</option>
             </select>
 
             {/* Source Image Upload */}
