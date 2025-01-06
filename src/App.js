@@ -16,6 +16,7 @@ import ProtectedRoute from './ProtectedRoute';
 import BitcoinPrice from './components/bitcoin-price/page';
 import BitcoinHistory from './components/bitcoin-history/page';
 import AddNoster from './components/add-noster/page';
+import MainFeedDesc from './components/mainFeedDesc/page';
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
             <Route path="add-noster" element={<AddNoster />} />
             <Route path="bitcoin-price" element={<BitcoinPrice />} />
             <Route path="bitcoin-history" element={<BitcoinHistory />} />
+            <Route path="main-feed-desc" element={<MainFeedDesc />} />
             <Route path="profile" element={<Profile />} />
             <Route path="edit-profile" element={<EditProfile />} />
           </Route>

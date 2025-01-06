@@ -85,7 +85,7 @@ const Sidebar = () => {
             <FaChartArea size={20} />
             <span>Add Charts</span>
           </Link>
-          <Link to="/add-noster" className="hover:text-yellow-400 flex items-center space-x-2 py-4">
+          <Link to="/add-noster" className="hover:text-yellow-400 flex items-center space-x-2 pb-4">
             <MdArticle size={20} />
             <span>Add Noster</span>
           </Link>
@@ -96,6 +96,10 @@ const Sidebar = () => {
           <Link to="/bitcoin-history" className="hover:text-yellow-400 flex items-center space-x-2 py-4">
             <MdArticle size={20} />
             <span>Bitcoin History</span>
+          </Link>
+          <Link to="/main-feed-desc" className="hover:text-yellow-400 flex items-center space-x-2">
+            <MdArticle size={20} />
+            <span>Bitcoin Description</span>
           </Link>
           </div>
         </nav>
