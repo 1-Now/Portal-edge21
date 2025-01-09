@@ -11,9 +11,6 @@ const BitcoinPrice = () => {
     para2: "",
     heading3: "",
     para3: "",
-    metatitle: "",
-    metadescription: "",
-    tags: "",
   });
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,9 +68,6 @@ const BitcoinPrice = () => {
   //         para2: data.para2,
   //         heading3: data.heading3,
   //         para3: data.para3,
-  //         metatitle: data.metatitle,
-  //         metadescription: data.metadescription,
-  //         tags: data.tags,
   //       }
   //     );
 
@@ -105,9 +99,6 @@ const BitcoinPrice = () => {
             para2: data.para2,
             heading3: data.heading3,
             para3: data.para3,
-            metatitle: data.metatitle,
-            metadescription: data.metadescription,
-            tags: data.tags,
           }
         );
 
@@ -126,9 +117,6 @@ const BitcoinPrice = () => {
             para2: data.para2,
             heading3: data.heading3,
             para3: data.para3,
-            metatitle: data.metatitle,
-            metadescription: data.metadescription,
-            tags: data.tags,
           }
         );
 
@@ -254,44 +242,6 @@ const BitcoinPrice = () => {
                 <FaPlus className="mr-2" /> Show Optional Fields
               </>
             )}
-          </div>
-
-          <div>
-            <label className="block text-white mb-1" htmlFor="metatitle">
-              Meta Title
-            </label>
-            <input
-              type="text"
-              id="metatitle"
-              value={data.metatitle}
-              onChange={handleInputChange}
-              className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-white mb-1" htmlFor="metadescription">
-              Meta Description
-            </label>
-            <textarea
-              id="metadescription"
-              value={data.metadescription}
-              onChange={handleInputChange}
-              className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
-              rows="4"
-            />
-          </div>
-
-          <div>
-            <label className="block text-white mb-1" htmlFor="tags">
-              Tags
-            </label>
-            <input
-              type="text"
-              id="tags"
-              value={data.tags}
-              onChange={handleInputChange}
-              className="w-full p-3 rounded bg-transparent text-white border border-white focus:outline-none"
-            />
           </div>
 
           <div className="w-full flex justify-center">
