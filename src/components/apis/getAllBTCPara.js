@@ -2,7 +2,7 @@ import axios from "axios";
 export async function fetchAllBTCPara() {
   try {
     const response = await axios.get(
-      `${process.env.REACT_APP_BACKEND_URL}/api/data/fetch-Para-Details?filter=all`
+      `https://api.edge21.co/api/data/fetch-Para-Details?filter=all`
     );
     return response.data || [];
   } catch (error) {

@@ -27,7 +27,7 @@ const MainFeedDesc = () => {
     setLoading(true); // Start loading
     try {
       const response = await axios.get(
-        `https://edge21-backend.vercel.app/api/data/fetchFeedByDate/${currentDate}`
+        `https://api.edge21.co/api/data/fetchFeedByDate/${currentDate}`
       );
       setFeedData(response.data[0] || null);
     } catch (error) {
@@ -42,7 +42,7 @@ const MainFeedDesc = () => {
     setBtcLoading(true); // Start loading
     try {
       const response = await axios.get(
-        `https://edge21-backend.vercel.app/api/data/fetchBtcPriceByDate/${currentDate}`
+        `https://api.edge21.co/api/data/fetchBtcPriceByDate/${currentDate}`
       );
       setBtcPriceData(response.data[0] || null);
     } catch (error) {
@@ -57,7 +57,7 @@ const MainFeedDesc = () => {
     setLoading(true);
     try {
       await axios.put(
-        `https://edge21-backend.vercel.app/api/data/updateFeedByDate/${currentDate}`
+        `https://api.edge21.co/api/data/updateFeedByDate/${currentDate}`
       );
       fetchFeedData(); // Refresh data
       alert("Feed data updated automatically.");
@@ -73,7 +73,7 @@ const MainFeedDesc = () => {
     setBtcLoading(true); // Start loading
     try {
       await axios.put(
-        `https://edge21-backend.vercel.app/api/data/updateBtcPriceByDate/${currentDate}`
+        `https://api.edge21.co/api/data/updateBtcPriceByDate/${currentDate}`
       );
       fetchBtcPriceData(); // Refresh data
       alert("BTC price data updated automatically.");
@@ -110,7 +110,7 @@ const MainFeedDesc = () => {
     setBtcLoading(true); // Start loading
     try {
       await axios.put(
-        `https://edge21-backend.vercel.app/api/data/updateBtcPriceByDate/${currentDate}`,
+        `https://api.edge21.co/api/data/updateBtcPriceByDate/${currentDate}`,
         customBtcData
       );
       fetchBtcPriceData();
@@ -129,7 +129,7 @@ const MainFeedDesc = () => {
     setLoading(true); // Start loading
     try {
       await axios.put(
-        `https://edge21-backend.vercel.app/api/data/updateFeedByDate/${currentDate}`,
+        `https://api.edge21.co/api/data/updateFeedByDate/${currentDate}`,
         customData
       );
       fetchFeedData();

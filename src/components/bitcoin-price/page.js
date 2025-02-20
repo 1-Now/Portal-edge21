@@ -31,7 +31,7 @@ const BitcoinPrice = () => {
 
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URL}/api/data/fetchDataByDate/${currentDate}`
+          `https://api.edge21.co/api/data/fetchDataByDate/${currentDate}`
         );
 
         if (response.data && response.data.length > 0) {
@@ -91,7 +91,7 @@ const BitcoinPrice = () => {
     try {
       if (data._id) {
         const response = await axios.put(
-          `${process.env.REACT_APP_BACKEND_URL}/api/data/update-Para-Details/${data._id}`,
+          `https://api.edge21.co/api/data/update-Para-Details/${data._id}`,
           {
             heading1: data.heading1,
             para1: data.para1,
@@ -109,7 +109,7 @@ const BitcoinPrice = () => {
         }
       } else {
         const response = await axios.post(
-          `${process.env.REACT_APP_BACKEND_URL}/api/data/storeParaDetails`,
+          `https://api.edge21.co/api/data/storeParaDetails`,
           {
             heading1: data.heading1,
             para1: data.para1,
