@@ -17,6 +17,7 @@ import BitcoinPrice from './components/bitcoin-price/page';
 import BitcoinHistory from './components/bitcoin-history/page';
 import AddNoster from './components/add-noster/page';
 import MainFeedDesc from './components/mainFeedDesc/page';
+import SendEmail from './components/send-email/page';
 
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
             <Route path="all-posts" element={<AllPosts />} />
             <Route path="edit-feed" element={<Editfeed />} />
             <Route path="all-users" element={<AllUsers />} />
+            <Route path="send-email" element={<SendEmail />} />
             <Route path="add-article" element={<AddArticle />} />
             <Route path="add-video" element={<AddVideo />} />
             <Route path="add-tweet" element={<AddTweet />} />

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { FiMenu, FiX, FiTwitter, FiEdit } from 'react-icons/fi';
 import { FaUsers,FaWifi } from "react-icons/fa";
-import { MdArticle,MdVideoChat } from 'react-icons/md';
+import { MdArticle,MdVideoChat,MdOutlineEmail } from 'react-icons/md';
 import { FaChartArea } from "react-icons/fa6";
 import { auth } from "../../firebase/firebaseConfig";
 import logo from "../../images/logo.png";
@@ -65,6 +65,10 @@ const Sidebar = () => {
           <Link to="/all-users" className="hover:text-yellow-400 flex items-center space-x-2">
             <FaUsers size={20} />
             <span>All Users</span>
+          </Link>
+          <Link to="/send-email" className="hover:text-yellow-400 flex items-center space-x-2 py-4">
+            <MdOutlineEmail size={20} />
+            <span>Send Email</span>
           </Link>
           </div>
           <h4 className="text-xs">Add Content</h4>
