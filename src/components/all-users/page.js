@@ -23,7 +23,8 @@ const AllUsers = () => {
     const fetchUsers = async () => {
       try {
         const response = await axios.get("https://api.edge21.co/api/auth/users");
-        setUsers(response.data.users || []);
+        console.log(response, "response");
+        setUsers(response.data || []);
       } catch (error) {
         setError(error.message);
       } finally {
