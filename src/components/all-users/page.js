@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { CiEdit } from "react-icons/ci";
 import { FiPlus } from "react-icons/fi";
+import { FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
 import ModalComponent from './../Reuseable/Model';
 import axios from "axios";
 
@@ -8,6 +9,8 @@ const AllUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState('asc');
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null); // Selected user for editing
@@ -16,7 +19,9 @@ const AllUsers = () => {
     phoneNumber: "",
     verified: false,
     subscriptions: [],
-    istrial: false
+    istrial: false,
+    firstBTCPaymentDone: false,
+    btcSubscriptionStatus: ""
   });
 
   useEffect(() => {
@@ -39,6 +44,58 @@ const AllUsers = () => {
     return <p className="text-center text-white">Loading...</p>;
   }
 
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortField !== field) {
+      return <FaSort className="ml-1 text-gray-400" />;
+    }
+    return sortDirection === 'asc' ? 
+      <FaSortUp className="ml-1 text-blue-400" /> : 
+      <FaSortDown className="ml-1 text-blue-400" />;
+  };
+
+  const sortedUsers = [...users].sort((a, b) => {
+    if (!sortField) return 0;
+
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+
+    // Handle nested values like subscriptions
+    if (sortField === 'subscriptionStatus') {
+      aValue = a.subscriptions && a.subscriptions.length > 0 ? a.subscriptions[0].subscriptionStatus : '';
+      bValue = b.subscriptions && b.subscriptions.length > 0 ? b.subscriptions[0].subscriptionStatus : '';
+    }
+
+    // Handle date fields
+    if (sortField === 'lastLogin' || sortField === 'btcPaidUntil') {
+      aValue = aValue ? new Date(aValue) : new Date(0);
+      bValue = bValue ? new Date(bValue) : new Date(0);
+    }
+
+    // Handle string comparison
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+
+    // Handle null/undefined values
+    if (aValue == null && bValue == null) return 0;
+    if (aValue == null) return 1;
+    if (bValue == null) return -1;
+
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   const handleUpdate = async () => {
     if (!selectedUser) return;
 
@@ -58,7 +115,9 @@ const AllUsers = () => {
           phoneNumber: customData.phoneNumber,
           verified: customData.verified,
           subscriptions: customData.subscriptions,
-          istrial: customData.istrial
+          istrial: customData.istrial,
+          firstBTCPaymentDone: customData.firstBTCPaymentDone,
+          btcSubscriptionStatus: customData.btcSubscriptionStatus
         }
       );
 
@@ -92,7 +151,9 @@ const AllUsers = () => {
       phoneNumber: user.phoneNumber,
       verified: user.verified,
       subscriptions: user.subscriptions || [],
-      istrial: user.istrial
+      istrial: user.istrial,
+      firstBTCPaymentDone: user.firstBTCPaymentDone || false,
+      btcSubscriptionStatus: user.btcSubscriptionStatus || "inactive"
     });
     setModalOpen(true);
   };
@@ -174,6 +235,30 @@ const AllUsers = () => {
             )}
           </div>
 
+          <div className="mb-4">
+            <label className="block text-sm font-bold mb-2 text-white">BTC Subscription Status:</label>
+            <select
+              value={customData.btcSubscriptionStatus}
+              onChange={(e) => setCustomData({ ...customData, btcSubscriptionStatus: e.target.value })}
+              className="w-full px-3 py-2 bg-gray-700 rounded text-white"
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-bold mb-2 text-white">First BTC Payment Done:</label>
+            <select
+              value={customData.firstBTCPaymentDone}
+              onChange={(e) => setCustomData({ ...customData, firstBTCPaymentDone: e.target.value === 'true' })}
+              className="w-full px-3 py-2 bg-gray-700 rounded text-white"
+            >
+              <option value={true}>Yes</option>
+              <option value={false}>No</option>
+            </select>
+          </div>
+
           <button
             type="submit"
             className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded shadow"
@@ -199,19 +284,72 @@ const AllUsers = () => {
             <table className="min-w-full text-left text-gray-400">
               <thead className="bg-[#222831] text-[#e0e3e7]">
                 <tr className="border-b border-gray-700">
-                  <th className="py-3 px-5">User Email</th>
-                  <th className="py-3 px-5">Verified</th>
-                  <th className="py-3 px-5">Token Used</th>
-                  <th className="py-3 px-5">PhoneNumber</th>
-                  <th className="py-3 px-5">Last Login</th>
-                  <th className="py-3 px-5">Free Plan</th>
-                  <th className="py-3 px-5">Subscription</th>
+                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('email')}>
+                    <div className="flex items-center">
+                      User Email
+                      {getSortIcon('email')}
+                    </div>
+                  </th>
+                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('verified')}>
+                    <div className="flex items-center">
+                      Verified
+                      {getSortIcon('verified')}
+                    </div>
+                  </th>
+                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('tokenUsed')}>
+                    <div className="flex items-center">
+                      Token Used
+                      {getSortIcon('tokenUsed')}
+                    </div>
+                  </th>
+                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('phoneNumber')}>
+                    <div className="flex items-center">
+                      PhoneNumber
+                      {getSortIcon('phoneNumber')}
+                    </div>
+                  </th>
+                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('lastLogin')}>
+                    <div className="flex items-center">
+                      Last Login
+                      {getSortIcon('lastLogin')}
+                    </div>
+                  </th>
+                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('istrial')}>
+                    <div className="flex items-center">
+                      Free Plan
+                      {getSortIcon('istrial')}
+                    </div>
+                  </th>
+                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('subscriptionStatus')}>
+                    <div className="flex items-center">
+                      Subscription
+                      {getSortIcon('subscriptionStatus')}
+                    </div>
+                  </th>
+                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('btcSubscriptionStatus')}>
+                    <div className="flex items-center">
+                      BTC Status
+                      {getSortIcon('btcSubscriptionStatus')}
+                    </div>
+                  </th>
+                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('firstBTCPaymentDone')}>
+                    <div className="flex items-center">
+                      BTC Payment
+                      {getSortIcon('firstBTCPaymentDone')}
+                    </div>
+                  </th>
+                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('btcPaidUntil')}>
+                    <div className="flex items-center">
+                      BTC Paid Until
+                      {getSortIcon('btcPaidUntil')}
+                    </div>
+                  </th>
                   <th className="py-3 px-5">Actions</th>
                 </tr>
               </thead>
 
               <tbody>
-                {users.map((user) => (
+                {sortedUsers.map((user) => (
                   <tr key={user.id} className="border-b border-gray-800">
                     {/* User Details */}
                     <td className="py-3 px-5">
@@ -261,6 +399,41 @@ const AllUsers = () => {
                       ) : (
                         "No subscription"
                       )}
+                    </td>
+
+                    {/* BTC Subscription Status */}
+                    <td className="py-3 px-5">
+                      <p className={`text-sm ${user?.btcSubscriptionStatus === 'active' ? 'text-green-400' : 'text-red-400'}`}>
+                        {user?.btcSubscriptionStatus}
+                      </p>
+                    </td>
+
+                    {/* First BTC Payment Done */}
+                    <td className="py-3 px-5">
+                      {user?.firstBTCPaymentDone ? (
+                        <div className="text-sm font-medium text-green-500 flex items-center gap-1">
+                          ✅ 1$ used
+                        </div>
+                      ) : (
+                        <span className="text-sm font-medium text-red-500 flex items-center gap-1">
+                          ❌ Not Subscribed
+                        </span>
+                      )}
+                    </td>
+
+                    {/* BTC Paid Until */}
+                    <td className="py-3 px-5">
+                      <p className="text-gray-500 text-sm">
+                        {user?.btcPaidUntil
+                          ? new Date(user.btcPaidUntil).toLocaleString("en-US", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })
+                          : "-"}
+                      </p>
                     </td>
 
                     {/* Actions */}
