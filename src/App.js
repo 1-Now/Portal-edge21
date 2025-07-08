@@ -18,6 +18,9 @@ import BitcoinHistory from './components/bitcoin-history/page';
 import AddNoster from './components/add-noster/page';
 import MainFeedDesc from './components/mainFeedDesc/page';
 import SendEmail from './components/send-email/page';
+import AddAudios from './components/add-audio/page';
+import Categories from './components/category/page';
+import ResourceLinks from './components/add-Resourcelinks/page';
 
 
 function App() {
@@ -39,6 +42,9 @@ function App() {
             <Route path="send-email" element={<SendEmail />} />
             <Route path="add-article" element={<AddArticle />} />
             <Route path="add-video" element={<AddVideo />} />
+            <Route path="add-audio" element={<AddAudios />} />
+            <Route path="add-category" element={<Categories />} />
+            <Route path="add-resourceLinks" element={<ResourceLinks />} />
             <Route path="add-tweet" element={<AddTweet />} />
             <Route path="add-charts" element={<AddCharts />} />
             <Route path="add-noster" element={<AddNoster />} />

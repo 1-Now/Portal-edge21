@@ -8,6 +8,8 @@ import { FaChartArea } from "react-icons/fa6";
 import { auth } from "../../firebase/firebaseConfig";
 import logo from "../../images/logo.png";
 import { Link } from 'react-router-dom';
+import { AiOutlineAudio } from "react-icons/ai";
+import { BiCategory } from "react-icons/bi"
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState();
@@ -80,6 +82,18 @@ const Sidebar = () => {
           <Link to="/add-video" className="hover:text-yellow-400 flex items-center space-x-2 py-4">
             <MdVideoChat size={20} />
             <span>Add Video</span>
+          </Link>
+          <Link to="/add-audio" className="hover:text-yellow-400 flex items-center space-x-2 pb-4">
+            <AiOutlineAudio size={20} />
+            <span>Add Audio</span>
+          </Link>
+          <Link to="/add-category" className="hover:text-yellow-400 flex items-center space-x-2 pb-4">
+            <BiCategory size={20} />
+            <span>Add Category</span>
+          </Link>
+          <Link to="/add-resourceLinks" className="hover:text-yellow-400 flex items-center space-x-2 pb-4">
+            <BiCategory size={20} />
+            <span>Add Resource Links</span>
           </Link>
           <Link to="/add-tweet" className="hover:text-yellow-400 flex items-center space-x-2">
             <FiTwitter size={20} />
