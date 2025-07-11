@@ -131,6 +131,7 @@ const EditPostForm = ({ postData, onClose, onSubmit }) => {
               <option value="Video">Video</option>
               <option value="Charts">Charts</option>
               <option value="Nostr">Nostr</option>
+              <option value="Audio">Audio</option>
             </select>
 
             {/* Source Image Upload */}
