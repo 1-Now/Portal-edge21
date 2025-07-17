@@ -21,7 +21,8 @@ const AllUsers = () => {
     subscriptions: [],
     istrial: false,
     firstBTCPaymentDone: false,
-    btcSubscriptionStatus: ""
+    btcSubscriptionStatus: "",
+    comments: ""
   });
 
   useEffect(() => {
@@ -98,15 +99,13 @@ const AllUsers = () => {
 
   const handleUpdate = async () => {
     if (!selectedUser) return;
-
-    const phoneRegex = /^\+?[1-9]\d{1,14}$/; // Matches numbers like +1234567890 or 1234567890
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
     if (
       customData.phoneNumber && !phoneRegex.test(customData.phoneNumber)
     ) {
       alert("Please enter a valid phone number in international format.");
       return;
     }
-
     try {
       const response = await axios.put(
         `https://api.edge21.co/api/auth/users/edit/${selectedUser._id}`,
@@ -117,7 +116,8 @@ const AllUsers = () => {
           subscriptions: customData.subscriptions,
           istrial: customData.istrial,
           firstBTCPaymentDone: customData.firstBTCPaymentDone,
-          btcSubscriptionStatus: customData.btcSubscriptionStatus
+          btcSubscriptionStatus: customData.btcSubscriptionStatus,
+          comments: customData.comments
         }
       );
 
@@ -153,7 +153,8 @@ const AllUsers = () => {
       subscriptions: user.subscriptions || [],
       istrial: user.istrial,
       firstBTCPaymentDone: user.firstBTCPaymentDone || false,
-      btcSubscriptionStatus: user.btcSubscriptionStatus || "inactive"
+      btcSubscriptionStatus: user.btcSubscriptionStatus || "inactive",
+      comments: user.comments || ""
     });
     setModalOpen(true);
   };
@@ -259,6 +260,17 @@ const AllUsers = () => {
             </select>
           </div>
 
+          <div className="mb-4">
+            <label className="block text-sm font-bold mb-2 text-white">Comments:</label>
+            <textarea
+              value={customData.comments}
+              onChange={e => setCustomData({ ...customData, comments: e.target.value })}
+              className="w-full px-3 py-2 bg-gray-700 rounded text-white"
+              placeholder="Enter comments"
+              rows={3}
+            />
+          </div>
+
           <button
             type="submit"
             className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded shadow"
@@ -282,7 +294,7 @@ const AllUsers = () => {
         <div className="border border-gray-700 rounded-lg max-h-[82vh] overflow-y-auto">
           <div className="w-full overflow-x-auto">
             <table className="min-w-full text-left text-gray-400">
-              <thead className="bg-[#222831] text-[#e0e3e7]">
+              <thead className="bg-[#222831] text-[#e0e3e7] text-sm">
                 <tr className="border-b border-gray-700">
                   <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('email')}>
                     <div className="flex items-center">
@@ -294,12 +306,6 @@ const AllUsers = () => {
                     <div className="flex items-center">
                       Verified
                       {getSortIcon('verified')}
-                    </div>
-                  </th>
-                  <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('tokenUsed')}>
-                    <div className="flex items-center">
-                      Token Used
-                      {getSortIcon('tokenUsed')}
                     </div>
                   </th>
                   <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('phoneNumber')}>
@@ -322,13 +328,13 @@ const AllUsers = () => {
                   </th>
                   <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('subscriptionStatus')}>
                     <div className="flex items-center">
-                      Subscription
+                      Stripe Subscription
                       {getSortIcon('subscriptionStatus')}
                     </div>
                   </th>
                   <th className="py-3 px-5 cursor-pointer hover:bg-gray-700" onClick={() => handleSort('btcSubscriptionStatus')}>
                     <div className="flex items-center">
-                      BTC Status
+                      BTC Subscription Status
                       {getSortIcon('btcSubscriptionStatus')}
                     </div>
                   </th>
@@ -344,6 +350,8 @@ const AllUsers = () => {
                       {getSortIcon('btcPaidUntil')}
                     </div>
                   </th>
+                  <th className="py-3 px-5">Comments</th>
+                  <th className="py-3 px-5">Login History</th>
                   <th className="py-3 px-5">Actions</th>
                 </tr>
               </thead>
@@ -358,11 +366,6 @@ const AllUsers = () => {
                     <td className="py-3 px-5">
                       <p className={`text-sm ${user?.verified ? 'text-green-400' : 'text-red-400'}`}>
                         {user?.verified ? 'Verified' : 'Not Verified'}
-                      </p>
-                    </td>
-                    <td className="py-3 px-5">
-                      <p className={`text-sm ${user?.tokenUsed ? 'text-green-400' : 'text-red-400'}`}>
-                        {user?.tokenUsed ? 'token Used' : 'Not Used'}
                       </p>
                     </td>
                     <td className="py-3 px-5">
@@ -434,6 +437,28 @@ const AllUsers = () => {
                           })
                           : "-"}
                       </p>
+                    </td>
+
+                    {/* Comments */}
+                    <td className="py-3 px-5">
+                      <p className="text-gray-500 text-sm">{user.comments || ""}</p>
+                    </td>
+                    {/* Login History */}
+                    <td className="py-3 px-5">
+                      {Array.isArray(user.loginHistory) && user.loginHistory.length > 0 ? (
+                        <div className="space-y-1 h-[100px] overflow-y-auto">
+                          {user.loginHistory.map((log) => (
+                            <div key={log._id} className="text-xs text-gray-400 border-b border-gray-700 pb-1 mb-1">
+                              <div><span className="font-bold">Time:</span> {new Date(log.timestamp).toLocaleString()}</div>
+                              <div><span className="font-bold">IP:</span> {log.ipAddress}</div>
+                              <div><span className="font-bold">Method:</span> {log.method}</div>
+                              <div><span className="font-bold">UA:</span> {log.userAgent}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500">No history</span>
+                      )}
                     </td>
 
                     {/* Actions */}
