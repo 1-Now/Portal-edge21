@@ -24,6 +24,7 @@ const AllUsers = () => {
     btcSubscriptionStatus: "",
     comments: ""
   });
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -58,12 +59,20 @@ const AllUsers = () => {
     if (sortField !== field) {
       return <FaSort className="ml-1 text-gray-400" />;
     }
-    return sortDirection === 'asc' ? 
-      <FaSortUp className="ml-1 text-blue-400" /> : 
+    return sortDirection === 'asc' ?
+      <FaSortUp className="ml-1 text-blue-400" /> :
       <FaSortDown className="ml-1 text-blue-400" />;
   };
 
-  const sortedUsers = [...users].sort((a, b) => {
+  // Filter users by search query (email or phone number)
+  const filteredUsers = users.filter(user => {
+    const email = user.email?.toLowerCase() || "";
+    const phone = user.phoneNumber?.toLowerCase() || "";
+    const query = search.toLowerCase();
+    return email.includes(query) || phone.includes(query);
+  });
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
     if (!sortField) return 0;
 
     let aValue = a[sortField];
@@ -282,13 +291,23 @@ const AllUsers = () => {
 
       <div className="min-h-screen bg-gray-900 p-5">
         {/* Header Section */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-white text-2xl font-bold">All Users</h1>
+
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+        <h1 className="text-white text-2xl font-bold">All Users</h1>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by email or number"
+            className="px-3 py-2 rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 w-full sm:w-64"
+          />
           <button className="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold py-2 px-4 rounded-lg flex items-center">
             <FiPlus size={20} className="mr-2" />
             Add New
           </button>
         </div>
+      </div>
 
         {/* Table Header */}
         <div className="border border-gray-700 rounded-lg max-h-[82vh] overflow-y-auto">
