@@ -79,10 +79,10 @@ const Sidebar = () => {
             <MdArticle size={20} />
             <span>Add Article</span>
           </Link>
-          {/* <Link to="/add-blog" className="hover:text-yellow-400 flex items-center space-x-2 pt-4">
+          <Link to="/add-blog" className="hover:text-yellow-400 flex items-center space-x-2 pt-4">
             <MdArticle size={20} />
             <span>Add Blog</span>
-          </Link> */}
+          </Link>
           <Link to="/add-video" className="hover:text-yellow-400 flex items-center space-x-2 py-4">
             <MdVideoChat size={20} />
             <span>Add Video</span>
