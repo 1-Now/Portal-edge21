@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { db, storage } from "../../firebase/firebaseConfig";
@@ -27,6 +26,7 @@ const PostForm = ({ postCategory, formTitle }) => {
     const [sourceImageFile, setSourceImageFile] = useState('');
     const [postPhotoFile, setPostPhotoFile] = useState('');
     const [loading, setLoading] = useState(false);
+    const [uploadError, setUploadError] = useState("");
     const navigate = useNavigate();
     // Check if user is authenticated
     const [authLoading, setAuthLoading] = useState(true);
@@ -63,6 +63,7 @@ const PostForm = ({ postCategory, formTitle }) => {
             return;
         }
         setLoading(true);
+        setUploadError("");
 
         try {
             const postsCollection = collection(db, "userPosts");
@@ -72,7 +73,7 @@ const PostForm = ({ postCategory, formTitle }) => {
             if (!contentIDSnapshot.empty) {
                 alert("ContentID already exists. Please use a unique ContentID.");
                 setLoading(false);
-                return; // Stop the submission if ContentID is not unique
+                return;
             }
 
             let sourceImageUrl = null;
@@ -80,16 +81,28 @@ const PostForm = ({ postCategory, formTitle }) => {
 
             // Upload Source Image to Firebase Storage if provided
             if (sourceImageFile) {
-                const sourceImageRef = ref(storage, `users/${user.uid}/${sourceImageFile.name}`);
-                await uploadBytes(sourceImageRef, sourceImageFile);
-                sourceImageUrl = await getDownloadURL(sourceImageRef);
+                try {
+                    const sourceImageRef = ref(storage, `users/${user.uid}/${sourceImageFile.name}`);
+                    await uploadBytes(sourceImageRef, sourceImageFile);
+                    sourceImageUrl = await getDownloadURL(sourceImageRef);
+                } catch (err) {
+                    setUploadError("Failed to upload Source Image.");
+                    setLoading(false);
+                    return;
+                }
             }
 
             // Upload Main Post Photo to Firebase Storage if provided
             if (postPhotoFile) {
-                const postPhotoRef = ref(storage, `users/${user.uid}/${postPhotoFile.name}`);
-                await uploadBytes(postPhotoRef, postPhotoFile);
-                postPhotoUrl = await getDownloadURL(postPhotoRef);
+                try {
+                    const postPhotoRef = ref(storage, `users/${user.uid}/${postPhotoFile.name}`);
+                    await uploadBytes(postPhotoRef, postPhotoFile);
+                    postPhotoUrl = await getDownloadURL(postPhotoRef);
+                } catch (err) {
+                    setUploadError("Failed to upload Feature Image.");
+                    setLoading(false);
+                    return;
+                }
             }
 
             // Create formData to be submitted to Firestore
@@ -112,9 +125,10 @@ const PostForm = ({ postCategory, formTitle }) => {
             await addDoc(postsCollection, postData);
 
             alert(`${postCategory} added successfully!`);
-            window.location.reload()
+            window.location.reload();
         } catch (error) {
             console.error("Error adding post: ", error);
+            setUploadError("Error adding post. Please try again.");
             alert("Error adding post. Please try again.");
         } finally {
             setLoading(false);
@@ -288,6 +302,9 @@ const PostForm = ({ postCategory, formTitle }) => {
                     </div>
                 </div>
 
+                {uploadError && (
+                    <div className="text-red-500 text-center font-semibold mb-2">{uploadError}</div>
+                )}
                 <button
                     type="submit"
                     className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg"
