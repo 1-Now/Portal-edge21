@@ -82,8 +82,17 @@ const PostForm = ({ postCategory, formTitle }) => {
             // Upload Source Image to Firebase Storage if provided
             if (sourceImageFile) {
                 try {
-                    const sourceImageRef = ref(storage, `users/${user.uid}/${sourceImageFile.name}`);
-                    await uploadBytes(sourceImageRef, sourceImageFile);
+                    // const sourceImageRef = ref(storage, `users/${user.uid}/${sourceImageFile.name}`);
+                    const uniqueSourceImageName = `${Date.now()}_${sourceImageFile.name}`;
+                    const sourceImageRef = ref(storage, `users/${user.uid}/${uniqueSourceImageName}`);
+                    console.log("Uploading Source Image to:", sourceImageRef);
+
+                    try {
+                        await uploadBytes(sourceImageRef, sourceImageFile);
+                    } catch (error) {
+                        console.error("Retrying source image upload due to image error", error);
+                        await uploadBytes(sourceImageRef, sourceImageFile);
+                    }
                     sourceImageUrl = await getDownloadURL(sourceImageRef);
                 } catch (err) {
                     setUploadError("Failed to upload Source Image.");
@@ -95,8 +104,18 @@ const PostForm = ({ postCategory, formTitle }) => {
             // Upload Main Post Photo to Firebase Storage if provided
             if (postPhotoFile) {
                 try {
-                    const postPhotoRef = ref(storage, `users/${user.uid}/${postPhotoFile.name}`);
-                    await uploadBytes(postPhotoRef, postPhotoFile);
+                    // const postPhotoRef = ref(storage, `users/${user.uid}/${postPhotoFile.name}`);
+                    // await uploadBytes(postPhotoRef, postPhotoFile);
+                    const uniquePostPhotoName = `${Date.now()}_${postPhotoFile.name}`;
+                    const postPhotoRef = ref(storage, `users/${user.uid}/${uniquePostPhotoName}`);
+                    console.log("Uploading Post Photo to:", postPhotoRef.fullPath);
+
+                    try {
+                        await uploadBytes(postPhotoRef, postPhotoFile);
+                    } catch (error) {
+                        console.error("Retrying post photo upload due to image error", error);
+                        await uploadBytes(postPhotoRef, postPhotoFile);
+                    }
                     postPhotoUrl = await getDownloadURL(postPhotoRef);
                 } catch (err) {
                     setUploadError("Failed to upload Feature Image.");
@@ -121,7 +140,7 @@ const PostForm = ({ postCategory, formTitle }) => {
                 postOwner: true,
                 postCategory: formData.postCategory,
             };
-
+            console.log("Post Data to be added:", postData);
             await addDoc(postsCollection, postData);
 
             alert(`${postCategory} added successfully!`);
