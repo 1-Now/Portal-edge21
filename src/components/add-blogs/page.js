@@ -9,7 +9,6 @@ const AddBlog = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [customData, setCustomData] = useState({
-    _id: '',
     title: '',
     subtitle: '',
     content: '',
@@ -90,7 +89,6 @@ const AddBlog = () => {
 
   const openModal = (blog) => {
     setCustomData(blog || {
-      _id: '',
       title: '',
       subtitle: '',
       content: '',
