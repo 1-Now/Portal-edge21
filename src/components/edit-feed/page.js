@@ -1,21 +1,5 @@
-
-
 import React, { useEffect, useState } from "react";
-import { db, storage } from "../../firebase/firebaseConfig";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  limit,
-  doc,
-  updateDoc,
-  deleteDoc,
-  startAfter,
-} from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import axios from "axios";
 import { formatDistanceToNowStrict, subDays } from "date-fns";
 import { CiEdit } from "react-icons/ci";
 import { MdDeleteOutline } from "react-icons/md";
@@ -25,114 +9,54 @@ import EditPostForm from './../Reuseable/EditPostForm';
 import PostCard from './../Reuseable/PostCard';
 import imageplaceholder from "../../images/placeholder-image.jpg";
 
-const POSTS_PER_PAGE = 30;
+const DEFAULT_RANGE = '2d';
 
 const Editfeed = () => {
   const [latestPosts, setLatestPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [lastVisible, setLastVisible] = useState(null); // Track the last post of the current page
-  const [page, setPage] = useState(1);
+  const [range, setRange] = useState(DEFAULT_RANGE);
   const [searchQuery, setSearchQuery] = useState("");
   const [editPostId, setEditPostId] = useState(null);
   const [editingPostData, setEditingPostData] = useState(null);
-  const [hasMorePosts, setHasMorePosts] = useState(true); // Track if there are more posts
-
-  const [checkingAuth, setCheckingAuth] = useState(true); // New state to check if auth is loading
-  const [user, setUser] = useState(null);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
 
 
   const navigate = useNavigate();
-   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        fetchPosts();
-      } else {
-        navigate('/login');
-      }
-      setCheckingAuth(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    const token = localStorage.getItem('admintoken');
+    if (!token) {
+      navigate('/login');
+    } else {
+      if (searchQuery) {
+        fetchPosts(searchQuery);
+      } else {
+        fetchPosts();
+      }
+    }
+  }, [range]);
 
-  // Fetch posts either default (48 hours) or search (30 days)
-  const fetchPosts = async (searchTerm = "", pageNumber = 1, usePagination = false) => {
+  // Fetch posts from REST API
+  const fetchPosts = async (searchTerm = "") => {
     setLoading(true);
     try {
-      const postsCollection = collection(db, "userPosts");
-      const currentTime = new Date();
-      const last48Hours = subDays(currentTime, 2);
-      const lastMonth = subDays(currentTime, 30);
-
-      let postsQuery;
-      if (searchTerm) {
-        postsQuery = query(
-          postsCollection,
-          where("timePublished", ">=", lastMonth),
-          orderBy("timePublished", "desc"),
-        );
-      } else {
-        postsQuery = query(
-          postsCollection,
-          where("timePublished", ">=", last48Hours),
-          orderBy("timePublished", "desc"),
-          limit(POSTS_PER_PAGE)
-        );
-      }
-
-      // Handle pagination using `startAfter`
-      if (usePagination && lastVisible) {
-        postsQuery = query(
-          postsCollection,
-          where("timePublished", ">=", last48Hours),
-          orderBy("timePublished", "desc"),
-          startAfter(lastVisible),
-          limit(POSTS_PER_PAGE)
-        );
-      }
-
-      const postsSnapshot = await getDocs(postsQuery);
-      const postsList = postsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      const lastVisiblePost = postsSnapshot.docs[postsSnapshot.docs.length - 1]; // Save last visible post
-      setLastVisible(lastVisiblePost);
-
-      // If searchTerm exists, filter results by postTitle or ContentID
-      let filteredPosts = postsList;
-      if (searchTerm) {
-        filteredPosts = postsList.filter(
-          (post) =>
-            post.postTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            post.ContentID?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-
-      filteredPosts.sort((a, b) => {
-        const ratingA = a['rating'] || 0;
-        const ratingB = b['rating'] || 0;
-        if (ratingA === ratingB) {
-          return b.timePublished.seconds - a.timePublished.seconds;
-        }
-        return ratingB - ratingA;
+      const token = localStorage.getItem('admintoken');
+      let url = `https://api.edge21.co/api/userPosts?range=${range}`;
+      const response = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-
-      // For pagination: Append new posts to the existing ones
-      if (usePagination) {
-        setLatestPosts((prevPosts) => [...prevPosts, ...filteredPosts]);
-      } else {
-        setLatestPosts(filteredPosts);
+      let postsList = response.data || [];
+      // Filter client-side if searchTerm is present
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        postsList = postsList.filter(
+          post =>
+            (post.postTitle && post.postTitle.toLowerCase().includes(term)) ||
+            (post.ContentID && post.ContentID.toLowerCase().includes(term))
+        );
       }
-
-      setHasMorePosts(postsList.length >= POSTS_PER_PAGE);
+      setLatestPosts(postsList);
+      setHasMorePosts(false);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -143,31 +67,29 @@ const Editfeed = () => {
   // Handle search query
   const handleSearch = (e) => {
     e.preventDefault();
-    setLastVisible(null);
-    fetchPosts(searchQuery, 1);
+    fetchPosts(searchQuery);
   };
+
+  // Clear search when range changes
+  useEffect(() => {
+    setSearchQuery("");
+  }, [range]);
 
   // Handle post editing
   const handleEditPost = (postId) => {
-    const postToEdit = latestPosts.find((post) => post.id === postId);
+    const postToEdit = latestPosts.find((post) => post._id === postId || post.id === postId);
     setEditingPostData(postToEdit);
     setEditPostId(postId);
   };
 
   // Handle deleting a post
-  const handleDeletePost = async (postId, imageUrl) => {
+  const handleDeletePost = async (postId) => {
     setActionLoading(true);
     try {
-      // Delete post from Firestore
-      const postRef = doc(db, "userPosts", postId);
-      await deleteDoc(postRef);
-
-      // Delete image from Firebase storage
-      if (imageUrl) {
-        const imageRef = ref(storage, imageUrl);
-        await deleteObject(imageRef);
-      }
-
+      const token = localStorage.getItem('admintoken');
+      await axios.delete(`https://api.edge21.co/api/userPosts/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       alert("Post deleted successfully!");
       fetchPosts();
     } catch (error) {
@@ -177,37 +99,36 @@ const Editfeed = () => {
     setActionLoading(false);
   };
 
-  const uploadImageIfNeeded = async (file, userId, fieldName) => {
-    if (!file || !userId) return null;
-    const fileRef = ref(storage, `users/${userId}/${file.name}`);
-    await uploadBytes(fileRef, file);
-    const downloadURL = await getDownloadURL(fileRef);
-    return downloadURL;
-  };
-
+  // Handle updating a post (with image upload support)
   const handleUpdatePost = async (updatedData) => {
+    setActionLoading(true);
     try {
-      const postRef = doc(db, "userPosts", editPostId);
-      let sourceImageUrl = updatedData.SourceImage;
-      let postPhotoUrl = updatedData.postPhoto;
+      const token = localStorage.getItem('admintoken');
+      let dataToSend = { ...updatedData };
+      let config = {
+        headers: { Authorization: `Bearer ${token}` }
+      };
 
-      // if (updatedData.SourceImage instanceof File) {
-      //   sourceImageUrl = await uploadImageIfNeeded(updatedData.SourceImage, updatedData.postOwner, "SourceImage");
-      // }
-      // if (updatedData.postPhoto instanceof File) {
-      //   postPhotoUrl = await uploadImageIfNeeded(updatedData.postPhoto, updatedData.postOwner, "postPhoto");
-      // }
-      if (updatedData.SourceImage instanceof File) {
-        sourceImageUrl = await uploadImageIfNeeded(updatedData.SourceImage, user.uid);
-      }
-      if (updatedData.postPhoto instanceof File) {
-        postPhotoUrl = await uploadImageIfNeeded(updatedData.postPhoto, user.uid);
+      // Always send postCategory as its _id (not object)
+      if (dataToSend.postCategory && typeof dataToSend.postCategory === 'object' && dataToSend.postCategory._id) {
+        dataToSend.postCategory = dataToSend.postCategory._id;
       }
 
-      const updatedPostData = { ...updatedData, SourceImage: sourceImageUrl, postPhoto: postPhotoUrl };
+      // If postPhoto or SourceImage is a File, use FormData
+      if (updatedData.postPhoto instanceof File || updatedData.SourceImage instanceof File) {
+        const formData = new FormData();
+        Object.entries(dataToSend).forEach(([key, value]) => {
+          if (value instanceof File) {
+            formData.append(key, value);
+          } else {
+            formData.append(key, value);
+          }
+        });
+        dataToSend = formData;
+        config.headers['Content-Type'] = 'multipart/form-data';
+      }
 
-      await updateDoc(postRef, updatedPostData);
-
+      await axios.put(`https://api.edge21.co/api/userPosts/${editPostId}`, dataToSend, config);
       alert("Post updated successfully!");
       setEditPostId(null);
       fetchPosts();
@@ -215,31 +136,12 @@ const Editfeed = () => {
       console.error("Error updating post:", error);
       alert("Failed to update the post.");
     }
+    setActionLoading(false);
   };
 
-  // Handle next page click
-  const handleNextPage = () => {
-    if (hasMorePosts) {
-      fetchPosts(searchQuery, page + 1, true); // Pass `true` to use pagination logic
-      setPage((prevPage) => prevPage + 1); // Increase page number
-    }
-  };
+  // Remove pagination logic
 
-  const handlePrevPage = () => {
-    if (page > 1) {
-      setPage((prevPage) => prevPage - 1);
-      fetchPosts(searchQuery, page - 1); // Fetch previous page posts
-    }
-  };
-
-  if (checkingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader />
-      </div>
-    );
-  }
-  console.log(latestPosts,"latestPosts")
+  console.log(latestPosts, "latestPosts")
   return (
     <div className="min-h-screen bg-gray-900 p-5 w-[50%] mx-auto">
       <h1 className="text-white text-2xl font-bold mb-6">Edit Posts</h1>
@@ -261,28 +163,34 @@ const Editfeed = () => {
       {/* Loading Spinner */}
       {loading && <p className="text-gray-400"><Loader /></p>}
 
+      {/* Range Selection */}
+      <div className="mb-4 flex gap-2">
+        <button onClick={() => setRange('2d')} className={`px-3 py-1 rounded ${range === '2d' ? 'bg-yellow-500 text-gray-900' : 'bg-gray-700 text-white'}`}>Last 2 Days</button>
+        <button onClick={() => setRange('7d')} className={`px-3 py-1 rounded ${range === '7d' ? 'bg-yellow-500 text-gray-900' : 'bg-gray-700 text-white'}`}>Last 7 Days</button>
+      </div>
+
       {/* Posts List */}
       {!loading && latestPosts.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-4">
           {latestPosts.map((post) => (
-            <div key={post.id} className="bg-gray-800 p-4 rounded flex flex-col justify-between">
+            <div key={post._id || post.id} className="bg-gray-800 p-4 rounded flex flex-col justify-between">
               <PostCard
                 image={post.postPhoto || imageplaceholder}
                 title={post.postTitle}
                 description={post.postDescription}
-                category={post.postCategory}
+                category={post.postCategory?.name || post.postCategory}
                 likes={post?.rating}
-                createdAt={formatDistanceToNowStrict(post.timePublished?.toDate())}
+                createdAt={post.timePublished ? formatDistanceToNowStrict(new Date(post.timePublished)) : "Unknown time"}
               />
               <div className="flex justify-between mt-2">
                 <button
-                  onClick={() => handleEditPost(post.id)}
+                  onClick={() => handleEditPost(post._id || post.id)}
                   className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded"
                 >
                   <CiEdit />
                 </button>
                 <button
-                  onClick={() => handleDeletePost(post.id, post.SourceImage)}
+                  onClick={() => handleDeletePost(post._id || post.id)}
                   className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
                   disabled={actionLoading}
                 >
@@ -293,24 +201,6 @@ const Editfeed = () => {
           ))}
         </div>
       )}
-
-      {/* Pagination */}
-      <div className="flex justify-center mt-6">
-        <button
-          onClick={handlePrevPage}
-          className={`bg-gray-700 hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded ${page === 1 ? "opacity-50 cursor-not-allowed" : ""}`}
-          disabled={page === 1}
-        >
-          Back
-        </button>
-        <button
-          onClick={handleNextPage}
-          className={`bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold py-2 px-4 rounded ${!hasMorePosts ? "opacity-50 cursor-not-allowed" : ""}`}
-          disabled={!hasMorePosts}
-        >
-          Next
-        </button>
-      </div>
 
       {/* Edit Post Form */}
       {editPostId && editingPostData && (

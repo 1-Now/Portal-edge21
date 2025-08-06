@@ -1,27 +1,22 @@
 
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
 import { FiMenu, FiX, FiTwitter, FiEdit } from 'react-icons/fi';
 import { FaUsers,FaWifi } from "react-icons/fa";
 import { MdArticle,MdVideoChat,MdOutlineEmail } from 'react-icons/md';
 import { FaChartArea } from "react-icons/fa6";
-import { auth } from "../../firebase/firebaseConfig";
 import logo from "../../images/logo.png";
 import { Link } from 'react-router-dom';
 import { AiOutlineAudio } from "react-icons/ai";
 import { BiCategory } from "react-icons/bi"
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState();
+  const [admin, setAdmin] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-      }
-    });
-
-    return () => unsubscribe();
+    const adminData = localStorage.getItem('admin');
+    if (adminData) {
+      setAdmin(JSON.parse(adminData));
+    }
   }, []);
 
   const toggleSidebar = () => {
@@ -126,12 +121,12 @@ const Sidebar = () => {
           </div>
         </nav>
 
-        {user ? (
+        {admin ? (
           <div className="mt-auto text-sm cursor-pointer">
             <Link to="/profile">
               <hr />
-              <p className="text-gray-400 pt-2">{user.displayName || 'User'}</p>
-              <p className="text-gray-600">{user.email || 'No Email'}</p>
+              <p className="text-gray-400 pt-2">{admin.name || 'Admin'}</p>
+              <p className="text-gray-600">{admin.email || 'No Email'}</p>
             </Link>
           </div>
         ) : (

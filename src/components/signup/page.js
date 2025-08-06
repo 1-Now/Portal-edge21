@@ -1,55 +1,50 @@
 import { useState } from "react";
 import axios from "axios";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
-import RightContainer from './../Reuseable/RightContainer';
 import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import RightContainer from './../Reuseable/RightContainer';
 import logo from "../../images/logo.png";
 
-const Login = () => {
+const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword((prevState) => !prevState);
   };
 
-  const handleLogin = async () => {
+  const handleSignup = async () => {
+    setLoading(true);
     try {
-      const response = await axios.post("https://api.edge21.co/api/admin/login", { email, password });
-      if (response.status === 200) {
-        // Store token and admin info if provided
-        if (response.data.token) {
-          localStorage.setItem('admintoken', response.data.token);
-        }
-        if (response.data.admin) {
-          localStorage.setItem('admin', JSON.stringify(response.data.admin));
-        }
-        navigate("/all-posts");
+      const response = await axios.post("https://api.edge21.co/api/admin/signup", { email, password });
+      if (response.status === 201) {
+        alert("Signup successful!");
+        navigate("/login");
       } else {
-        alert(response.data.message || "Login failed!");
+        alert(response.data.message || "Signup failed!");
       }
     } catch (error) {
       if (error.response) {
-        alert(error.response.data.message || "Login failed! Please check your credentials.");
+        alert(error.response.data.message || "Signup failed!");
       } else {
-        alert("Login failed! " + error.message);
+        alert("Signup failed! " + error.message);
       }
-      console.error("Login error:", error.message);
     }
+    setLoading(false);
   };
 
   return (
     <>
       <Helmet>
-        <title>Login - The Bitcoin Edge</title>
-        <meta name="description" content="Login to access your personalized feed of trending Bitcoin news and insights." />
+        <title>Signup - The Bitcoin Edge</title>
+        <meta name="description" content="Signup to access your personalized feed of trending Bitcoin news and insights." />
         <meta name="robots" content="index, follow" />
-        <meta property="og:title" content="Login - The Bitcoin Edge" />
-        <meta property="og:description" content="Login to access your personalized feed of trending Bitcoin news and insights." />
+        <meta property="og:title" content="Signup - The Bitcoin Edge" />
+        <meta property="og:description" content="Signup to access your personalized feed of trending Bitcoin news and insights." />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="/images/logo.png" />
       </Helmet>
@@ -60,7 +55,7 @@ const Login = () => {
           <div className="text-white pb-6">
             <img
               src={logo}
-              alt="Login Illustration"
+              alt="Signup Illustration"
               layout="responsive"
               width={100}
               height={200}
@@ -68,8 +63,8 @@ const Login = () => {
               className="logo-edge21"
             />
           </div>
-          <h1 className="text-3xl text-white my-4 font-bold">Welcome Back</h1>
-          <h6 className="text-md text-white mb-6">Let&#39;s get started by filling out form below</h6>
+          <h1 className="text-3xl text-white my-4 font-bold">Create Account</h1>
+          <h6 className="text-md text-white mb-6">Sign up to get started</h6>
 
           <div className="w-full mb-4">
             <div className="relative">
@@ -101,27 +96,28 @@ const Login = () => {
             </div>
           </div>
           <button
-            onClick={handleLogin}
+            onClick={handleSignup}
             className="bg-[#f7b006] text-white font-semibold py-2 px-4 rounded-xl w-full"
+            disabled={loading}
           >
-            Sign In
+            {loading ? "Signing Up..." : "Sign Up"}
           </button>
 
           <p className="text-sm text-left text-white mt-4">
-            Forgot your password?
-            <Link to="/forgot-password" className="text-[#f7b006] ps-1">
-              Reset Here
+            Already have an account?
+            <Link to="/login" className="text-[#f7b006] ps-1">
+              Login Here
             </Link>
           </p>
         </div>
 
         <RightContainer
           src="/images/register.jpg"
-          alt="Login Illustration"
+          alt="Signup Illustration"
         />
       </div>
     </>
   );
 };
 
-export default Login;
+export default Signup;

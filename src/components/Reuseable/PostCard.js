@@ -7,9 +7,12 @@ import { MdOutlineModeComment } from "react-icons/md";
 import { FiFileText } from 'react-icons/fi';
 import imageplaceholder from "../../images/placeholder-image.jpg";
 
-const PostCard = ({ category, image, ShareLink, title, description, likes, comments, createdAt }) => {
+const PostCard = ({ category, image, ShareLink, title, description, likes, createdAt }) => {
     const [showMore, setShowMore] = useState(false);
     const handleToggle = () => setShowMore(!showMore);
+
+    // Ensure description
+    const safeDescription = typeof description === 'string' ? description : '';
 
     const characterLimit = 100;
     const getCategoryIcon = () => {
@@ -29,7 +32,6 @@ const PostCard = ({ category, image, ShareLink, title, description, likes, comme
 
     return (
         <div className="bg-gray-800 text-white p-4 rounded-lg">
-
             <div className="mb-4">
                 <div className="relative">
                     {image && (
@@ -48,7 +50,6 @@ const PostCard = ({ category, image, ShareLink, title, description, likes, comme
                 <div className="flex justify-between text-sm text-gray-400 mb-2">
                     <div className="flex items-center">
                         <CiHeart className="mr-2 text-2xl text-bolder text-white" /> {likes || 0}
-                        <MdOutlineModeComment className="mx-2 text-2xl text-bolder text-white" /> {comments || 0}
                     </div>
                     <div className="text-right text-xs text-gray-500 mt-2">
                         {createdAt}
@@ -56,11 +57,11 @@ const PostCard = ({ category, image, ShareLink, title, description, likes, comme
                 </div>
                 <h2 className="text-xl font-bold mb-2">{title}</h2>
                 <p className="text-gray-400 cursor-pointer" onClick={handleToggle}>
-                    {showMore || description.length <= characterLimit
-                        ? description
-                        : `${description.substring(0, characterLimit)}...`}
+                    {showMore || safeDescription.length <= characterLimit
+                        ? safeDescription
+                        : `${safeDescription.substring(0, characterLimit)}...`}
                 </p>
-                {description.length > characterLimit && (
+                {safeDescription.length > characterLimit && (
                     <button
                         onClick={handleToggle}
                         className="text-yellow-400 text-sm mt-2"

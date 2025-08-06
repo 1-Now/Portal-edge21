@@ -1,57 +1,34 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { FaUserPlus } from 'react-icons/fa';
-import { auth, db } from "../../firebase/firebaseConfig";
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import axios from 'axios';
 
 const EditProfile = () => {
-  const [user, setUser] = useState(null);
+  const [admin, setAdmin] = useState(null);
   const [userData, setUserData] = useState({
     displayName: '',
     email: '',
     bio: '',
-    profileImage: '',
   });
   const [loading, setLoading] = useState(true);
-  const [imageFile, setImageFile] = useState(null);
-  const imageInputRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-
-        setUserData({
-          displayName: currentUser.displayName || '',
-          email: currentUser.email || '',
-          bio: currentUser?.bio || '',
-          profileImage: currentUser.photoURL || '',
-        });
-
-        // Optionally fetch additional user data from Firestore
-        try {
-          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-          console.log(userDoc,"userDoc")
-          if (userDoc.exists()) {
-            setUserData(prevData => ({
-              ...prevData,
-              displayName: userDoc.data().displayName || '',
-              bio: userDoc.data().bio || '',
-            }));
-          }
-        } catch (error) {
-          console.error("Error fetching user data: ", error);
-        }
-      } else {
-        navigate('/login');
-      }
+    // Get admin info from localStorage
+    const adminData = localStorage.getItem('admin');
+    if (adminData) {
+      const adminObj = JSON.parse(adminData);
+      setAdmin(adminObj);
+      setUserData({
+        displayName: adminObj.userName || '',
+        email: adminObj.email || '',
+        bio: adminObj.bio || '',
+      });
       setLoading(false);
-    });
-
-    return () => unsubscribe();
+    } else {
+      navigate('/login');
+    }
   }, [navigate]);
 
   const handleChange = (e) => {
@@ -59,35 +36,25 @@ const EditProfile = () => {
     setUserData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setImageFile(e.target.files[0]);
-      setUserData((prevData) => ({
-        ...prevData,
-        profileImage: URL.createObjectURL(e.target.files[0]), // Display the image preview
-      }));
-    }
-  };
-
-  const triggerImageUpload = () => {
-    imageInputRef.current.click();
-  };
 
   const handleSaveChanges = async () => {
     try {
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        await updateDoc(userRef, {
-          displayName: userData.displayName,
-          bio: userData.bio,
-          profileImage: userData.profileImage,
-        });
-        console.log(userRef,"UserRef")
-        alert("Profile updated successfully!");
+      if (!admin?._id) {
+        alert("Admin ID not found.");
+        return;
       }
+      const updatedAdmin = {
+        userName: userData.displayName,
+        bio: userData.bio,
+      };
+      const response = await axios.put(`https://api.edge21.co/api/admin/${admin._id}`, updatedAdmin);
+      const newAdmin = { ...admin, ...updatedAdmin };
+      localStorage.setItem('admin', JSON.stringify(newAdmin));
+      setAdmin(newAdmin);
+      alert(response.data.message || "Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile: ", error);
-      alert("Failed to update profile.");
+      alert(error.response?.data?.message || "Failed to update profile.");
     }
   };
 
@@ -95,7 +62,7 @@ const EditProfile = () => {
     return <p className="text-center text-white">Loading...</p>;
   }
 
-  return user ? (
+  return admin ? (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-lg bg-gray-800 p-6 rounded-lg shadow-lg">
         {/* Back Button */}
@@ -112,31 +79,12 @@ const EditProfile = () => {
           Fill out your profile to complete the setup of your account.
         </p>
 
-        {/* Profile Image Upload (User + Icon or Image Clickable) */}
-        <div
-          className="flex flex-col items-center mb-6 cursor-pointer"
-          onClick={triggerImageUpload} // Trigger the file input when clicked
-        >
-          {userData.profileImage ? (
-            <img
-              src={userData.profileImage}
-              alt="Profile Image"
-              className="rounded-full"
-            />
-          ) : (
-            <div className="bg-gray-600 rounded-full w-24 h-24 flex items-center justify-center text-gray-300">
-              <FaUserPlus className="text-3xl" /> {/* User + Icon */}
-            </div>
-          )}
+        {/* User Icon */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="bg-gray-600 rounded-full w-24 h-24 flex items-center justify-center text-gray-300">
+            <FaUserPlus className="text-3xl" />
+          </div>
         </div>
-
-        {/* Hidden File Input */}
-        <input
-          type="file"
-          ref={imageInputRef}
-          onChange={handleImageChange}
-          style={{ display: 'none' }} // Hidden input field
-        />
 
         {/* Form Fields */}
         <div className="mb-4">

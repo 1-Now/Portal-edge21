@@ -22,6 +22,8 @@ import AddAudios from './components/add-audio/page';
 import Categories from './components/category/page';
 import ResourceLinks from './components/add-Resourcelinks/page';
 import AddBlog from './components/add-blogs/page';
+import Signup from './components/signup/page';
+import ChangePassword from './components/ChangePassword/page';
 
 
 function App() {
@@ -30,9 +32,9 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgetPassword />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/edit-profile" element={<EditProfile />} />
+
 
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
@@ -55,6 +57,7 @@ function App() {
             <Route path="main-feed-desc" element={<MainFeedDesc />} />
             <Route path="profile" element={<Profile />} />
             <Route path="edit-profile" element={<EditProfile />} />
+            <Route path="change-password" element={<ChangePassword />} />
           </Route>
         </Route>
       </Routes>

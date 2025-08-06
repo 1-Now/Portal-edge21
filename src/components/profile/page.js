@@ -1,32 +1,28 @@
 
 import { useEffect, useState } from 'react';
-import { auth } from "../../firebase/firebaseConfig";
-import { onAuthStateChanged, signOut } from "firebase/auth";
 import { FaArrowLeft } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 const Profile = () => {
-  const [user, setUser] = useState(null);
+  const [admin, setAdmin] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        navigate('/login');
-      } else {
-        setUser(currentUser);
-      }
-    });
-    return () => unsubscribe();
+    const adminData = localStorage.getItem('admin');
+    if (adminData) {
+      setAdmin(JSON.parse(adminData));
+    } else {
+      navigate('/login');
+    }
   }, [navigate]);
 
-
-  const handleLogout = async () => {
-    await signOut(auth);
+  const handleLogout = () => {
+    localStorage.removeItem('admin');
+    localStorage.removeItem('admintoken');
     alert("Logged out successfully");
     navigate('/login');
   };
 
-  if (!user) {
+  if (!admin) {
     return <p className="text-center text-white">Loading...</p>;
   }
 
@@ -47,10 +43,9 @@ const Profile = () => {
       </div>
       <div className="bg-[#0f1216] w-full sm:w-full md:w-1/2 lg:w-1/3.5">
         <div className="py-4 ps-4">
-          <h1 className="text-sm font-bold mb-2">{user.displayName || "No Name Provided"}</h1>
-          <p className="text-yellow-500 text-xs">{user.email}</p>
+          <h1 className="text-sm font-bold mb-2">{admin.userName || admin.name || "No Name Provided"}</h1>
+          <p className="text-yellow-500 text-xs">{admin.email}</p>
         </div>
-
       </div>
       <div className="mt-4 w-full sm:w-full md:w-1/2 lg:w-1/3.5">
         <h6 className="text-white ps-4 pb-4 text-xs">Account Settings</h6>
@@ -61,7 +56,7 @@ const Profile = () => {
             <span className="text-gray-400 text-2xl">›</span>
           </div>
           </Link>
-          <Link to="/forgot-password">
+          <Link to="/change-password">
           <div className="flex justify-between items-center px-4 py-2 border-b border-gray-800">
             <span className="text-white text-xs">Change Password</span>
             <span className="text-gray-400 text-2xl">›</span>
@@ -70,12 +65,6 @@ const Profile = () => {
           <Link to="/">
           <div className="flex justify-between items-center px-4 py-2 border-b border-gray-800">
             <span className="text-white text-xs">Home</span>
-            <span className="text-gray-400 text-2xl">›</span>
-          </div>
-          </Link>
-          <Link to="https://edge21.co/about/">
-          <div className="flex justify-between items-center px-4 py-2 border-b border-gray-800">
-            <span className="text-white text-xs">About</span>
             <span className="text-gray-400 text-2xl">›</span>
           </div>
           </Link>

@@ -1,14 +1,9 @@
-import { useState, useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { db, storage } from "../../firebase/firebaseConfig";
-import { collection, addDoc, getDocs, query, where, Timestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useState } from 'react';
+import axios from 'axios';
 import { MdLinkedCamera } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
 
 const PostForm = ({ postCategory, formTitle }) => {
-    const auth = getAuth();
-    const [user, setUser] = useState(null);
     const [formData, setFormData] = useState({
         postTitle: "",
         postDescription: "",
@@ -17,30 +12,17 @@ const PostForm = ({ postCategory, formTitle }) => {
         sourceLink: "",
         SourceName: "",
         SourceDescription: "",
-        postCategory: postCategory,
+        postCategory: postCategory?._id || "",
         ContentID: "",
         timePublished: "",
         SourceImage: "",
         postPhoto: ""
     });
-    const [sourceImageFile, setSourceImageFile] = useState('');
-    const [postPhotoFile, setPostPhotoFile] = useState('');
+    const [sourceImageFile, setSourceImageFile] = useState(null);
+    const [postPhotoFile, setPostPhotoFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [uploadError, setUploadError] = useState("");
     const navigate = useNavigate();
-    // Check if user is authenticated
-    const [authLoading, setAuthLoading] = useState(true);
-
-    useEffect(() => {
-        onAuthStateChanged(auth, (currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-            } else {
-                navigate("/login");
-            }
-            setAuthLoading(false);
-        });
-    }, [auth]);
 
     // Handle form field changes
     const handleInputChange = (e) => {
@@ -58,102 +40,48 @@ const PostForm = ({ postCategory, formTitle }) => {
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!user) {
-            navigate("/login");
-            return;
-        }
         setLoading(true);
         setUploadError("");
 
         try {
-            const postsCollection = collection(db, "userPosts");
-            const contentIDQuery = query(postsCollection, where("ContentID", "==", formData.ContentID));
-            const contentIDSnapshot = await getDocs(contentIDQuery);
-
-            if (!contentIDSnapshot.empty) {
-                alert("ContentID already exists. Please use a unique ContentID.");
-                setLoading(false);
-                return;
-            }
-
-            let sourceImageUrl = null;
-            let postPhotoUrl = null;
-
-            // Upload Source Image to Firebase Storage if provided
+            // Prepare FormData for file upload
+            const data = new FormData();
+            Object.entries(formData).forEach(([key, value]) => {
+                if (key === 'InternalScore') {
+                    data.append(key, value ? Number(value) : 0);
+                } else if (key === 'timePublished' && value) {
+                    data.append(key, new Date(value).toISOString());
+                } else if (key === 'postCategory') {
+                    // Always send category _id
+                    data.append(key, postCategory?._id || "");
+                } else {
+                    data.append(key, value);
+                }
+            });
             if (sourceImageFile) {
-                try {
-                    // const sourceImageRef = ref(storage, `users/${user.uid}/${sourceImageFile.name}`);
-                    const uniqueSourceImageName = `${Date.now()}_${sourceImageFile.name}`;
-                    const sourceImageRef = ref(storage, `users/${user.uid}/${uniqueSourceImageName}`);
-                    console.log("Uploading Source Image to:", sourceImageRef);
-
-                    try {
-                        await uploadBytes(sourceImageRef, sourceImageFile);
-                    } catch (error) {
-                        console.error("Retrying source image upload due to image error", error);
-                        await uploadBytes(sourceImageRef, sourceImageFile);
-                    }
-                    sourceImageUrl = await getDownloadURL(sourceImageRef);
-                } catch (err) {
-                    setUploadError("Failed to upload Source Image.");
-                    setLoading(false);
-                    return;
-                }
+                data.append('SourceImage', sourceImageFile);
             }
-
-            // Upload Main Post Photo to Firebase Storage if provided
             if (postPhotoFile) {
-                try {
-                    // const postPhotoRef = ref(storage, `users/${user.uid}/${postPhotoFile.name}`);
-                    // await uploadBytes(postPhotoRef, postPhotoFile);
-                    const uniquePostPhotoName = `${Date.now()}_${postPhotoFile.name}`;
-                    const postPhotoRef = ref(storage, `users/${user.uid}/${uniquePostPhotoName}`);
-                    console.log("Uploading Post Photo to:", postPhotoRef.fullPath);
-
-                    try {
-                        await uploadBytes(postPhotoRef, postPhotoFile);
-                    } catch (error) {
-                        console.error("Retrying post photo upload due to image error", error);
-                        await uploadBytes(postPhotoRef, postPhotoFile);
-                    }
-                    postPhotoUrl = await getDownloadURL(postPhotoRef);
-                } catch (err) {
-                    setUploadError("Failed to upload Feature Image.");
-                    setLoading(false);
-                    return;
-                }
+                data.append('postPhoto', postPhotoFile);
             }
+            data.append('postOwner', true);
 
-            // Create formData to be submitted to Firestore
-            const postData = {
-                postTitle: formData.postTitle,
-                postDescription: formData.postDescription,
-                rating: formData.rating,
-                InternalScore: formData.InternalScore ? Number(formData.InternalScore) : 0,
-                sourceLink: formData.sourceLink,
-                SourceName: formData.SourceName,
-                SourceDescription: formData.SourceDescription,
-                ContentID: formData.ContentID,
-                timePublished: formData.timePublished ? Timestamp.fromDate(new Date(formData.timePublished)) : null,
-                SourceImage: sourceImageUrl || null,
-                postPhoto: postPhotoUrl || null,
-                postOwner: true,
-                postCategory: formData.postCategory,
-            };
-            console.log("Post Data to be added:", postData);
-            await addDoc(postsCollection, postData);
+            await axios.post('https://api.edge21.co/api/userPosts/createPost', data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
 
-            alert(`${postCategory} added successfully!`);
+            alert(`${postCategory?.name || "Post"} added successfully!`);
             window.location.reload();
         } catch (error) {
-            console.error("Error adding post: ", error);
-            setUploadError("Error adding post. Please try again.");
-            alert("Error adding post. Please try again.");
+            console.error("Error adding post: ", error.response?.data?.message);
+            setUploadError(error.response?.data?.message || "Error adding post. Please try again.");
+            alert(error.response?.data?.message || "Error adding post. Please try again.");
         } finally {
             setLoading(false);
         }
     };
-    if (authLoading) return <div className="text-white">Authenticating...</div>;
 
     return (
         <div className="min-h-screen bg-gray-900 p-5">
@@ -181,7 +109,7 @@ const PostForm = ({ postCategory, formTitle }) => {
                 <input
                     type="text"
                     name="postTitle"
-                    placeholder={`${postCategory} Heading`}
+                    placeholder={`${postCategory?.name || "Post"} Heading`}
                     value={formData.postTitle}
                     onChange={handleInputChange}
                     required
@@ -191,7 +119,7 @@ const PostForm = ({ postCategory, formTitle }) => {
                 {/* Description */}
                 <textarea
                     name="postDescription"
-                    placeholder={`${postCategory} Summary`}
+                    placeholder={`${postCategory?.name || "Post"} Summary`}
                     value={formData.postDescription}
                     onChange={handleInputChange}
                     className="w-full p-3 rounded bg-transparent text-white focus:placeholder-white placeholder-white border-2 border-[#31363f] focus:border-yellow-500 focus:outline-none"
@@ -254,7 +182,7 @@ const PostForm = ({ postCategory, formTitle }) => {
                                 <input
                                     type="file"
                                     id="sourceImage"
-                                    name="sourceImage"
+                                    name="SourceImage"
                                     accept="image/*"
                                     onChange={(e) => handleImageChange(e, setSourceImageFile)}
                                     className="hidden"
@@ -271,6 +199,7 @@ const PostForm = ({ postCategory, formTitle }) => {
                                     height={100}
                                 />
                                 <button
+                                    type="button"
                                     onClick={() => setSourceImageFile(null)}
                                     className="absolute top-2 right-2 bg-red-500 text-white px-[7px] py-[1px] rounded"
                                 >
@@ -311,6 +240,7 @@ const PostForm = ({ postCategory, formTitle }) => {
                                     height={100}
                                 />
                                 <button
+                                    type="button"
                                     onClick={() => setPostPhotoFile(null)}
                                     className="absolute top-2 right-2 bg-red-500 text-white px-[7px] py-[1px] rounded"
                                 >
@@ -329,7 +259,7 @@ const PostForm = ({ postCategory, formTitle }) => {
                     className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-lg"
                     disabled={loading}
                 >
-                    {loading ? `Adding ${postCategory}...` : `Add ${postCategory}`}
+                    {loading ? `Adding ${postCategory?.name || "Post"}...` : `Add ${postCategory?.name || "Post"}`}
                 </button>
             </form>
         </div>

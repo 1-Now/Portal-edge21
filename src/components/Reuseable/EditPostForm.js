@@ -1,14 +1,35 @@
 
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
 const EditPostForm = ({ postData, onClose, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    ...postData,
-  });
+  const [formData, setFormData] = useState({ ...postData });
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get("https://api.edge21.co/api/userCategories");
+        setCategories(res.data || []);
+      } catch (err) {
+        setCategories([]);
+      }
+      setLoadingCategories(false);
+    };
+    fetchCategories();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    // For category, store the whole object
+    if (name === "postCategory") {
+      const selectedCat = categories.find(cat => cat._id === value);
+      setFormData({ ...formData, postCategory: selectedCat });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleImageChange = (e) => {
@@ -122,16 +143,17 @@ const EditPostForm = ({ postData, onClose, onSubmit }) => {
             <label className="block text-white">Post Category</label>
             <select
               name="postCategory"
-              value={formData.postCategory}
+              value={formData.postCategory?._id || ""}
               onChange={handleInputChange}
               className="w-full p-3 rounded bg-gray-900 text-white"
+              disabled={loadingCategories}
             >
-              <option value="Article">Article</option>
-              <option value="Tweet">Tweet</option>
-              <option value="Video">Video</option>
-              <option value="Charts">Charts</option>
-              <option value="Nostr">Nostr</option>
-              <option value="Audio">Audio</option>
+              <option value="" disabled>
+                {loadingCategories ? "Loading..." : "Select Category"}
+              </option>
+              {categories.map(cat => (
+                <option key={cat._id} value={cat._id}>{cat.name}</option>
+              ))}
             </select>
 
             {/* Source Image Upload */}
