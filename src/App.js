@@ -24,6 +24,7 @@ import ResourceLinks from './components/add-Resourcelinks/page';
 import AddBlog from './components/add-blogs/page';
 import Signup from './components/signup/page';
 import ChangePassword from './components/ChangePassword/page';
+import ImportUserPosts from './components/add-Posts-Excel/page';
 
 
 function App() {
@@ -58,6 +59,8 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="edit-profile" element={<EditProfile />} />
             <Route path="change-password" element={<ChangePassword />} />
+            <Route path="add-posts-excel" element={<ImportUserPosts />} />
+
           </Route>
         </Route>
       </Routes>
